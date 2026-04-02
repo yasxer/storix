@@ -1,4 +1,5 @@
 'use client'
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react'
 import { searchArticles, createBon } from './actions'
@@ -6,7 +7,12 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, ScanBarcode, Minus, Plus, Trash2, ShoppingCart, CheckCircle2, Camera } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { ScannerModal } from './scanner-modal'
+import dynamic from 'next/dynamic'
+
+// Dynamically import ScannerModal to avoid SSR issues with html5-qrcode
+const ScannerModal = dynamic(() => import('./scanner-modal').then(mod => mod.ScannerModal), {
+  ssr: false,
+})
 
 type PosClientProps = {
   sessionId: string
@@ -159,178 +165,252 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
   }
 
   return (
-    <div className="flex h-full gap-4 pt-4">
+    <div className="flex flex-col lg:flex-row h-full gap-4 p-4 lg:p-6 pb-24 lg:pb-6">
       {/* Left side: Search & Results */}
-      <div className="flex-1 flex flex-col gap-4 overflow-hidden pr-2">
-        <div className="relative shrink-0">
-          <Input
-            ref={searchRef}
-            autoFocus
-            className="w-full pl-10 pr-12 py-4 text-lg border-2 shadow-sm rounded-xl focus-visible:ring-[var(--color-primary)] focus-visible:border-[var(--color-primary)]"
-            placeholder="Scan barcode or type article name..."
-            value={query}
-            onChange={handleSearch}
-            onKeyDown={handleKeyDown}
-          />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-primary)] opacity-80 hover:opacity-100 transition h-14 w-14"
+      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+        <div className="relative shrink-0 flex gap-2">
+          <div className="relative flex-1">
+            <Input
+              ref={searchRef}
+              autoFocus
+              className="w-full pl-11 pr-4 py-6 text-lg border-none shadow-sm ring-1 ring-gray-200/60 rounded-2xl bg-white focus-visible:ring-blue-500 focus-visible:border-transparent transition-shadow"
+              placeholder="Scan barcode or type article name..."
+              value={query}
+              onChange={handleSearch}
+              onKeyDown={handleKeyDown}
+            />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={22} />
+            {isPending && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            )}
+          </div>
+          <Button
+            size="icon"
+            className="shrink-0 h-full aspect-square rounded-2xl bg-gray-900 hover:bg-gray-800 text-white shadow-md transition-transform active:scale-95"
             onClick={() => setIsScannerOpen(true)}
             title="Open camera scanner"
           >
-            <Camera size={36} strokeWidth={2.5} />
+            <Camera size={26} />
           </Button>
-          {isPending && (
-             <div className="absolute right-16 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+        </div>
+
+        <div className="flex-1 overflow-y-auto no-scrollbar grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-24 lg:pb-0">
+          {results.map((article: any) => (
+             <div key={article.id} className="group flex flex-col bg-white ring-1 ring-gray-200/60 rounded-3xl p-5 hover:shadow-xl hover:shadow-blue-900/5 hover:ring-blue-200 transition-all duration-300">
+                <div className="mb-3">
+                  <div className="flex justify-between items-start">
+                     <div>
+                       <h3 className="font-bold text-gray-900 text-lg line-clamp-1" title={article.title}>{article.title}</h3>
+                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-0.5">{article.categoryName}</p>
+                     </div>
+                     <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-bold text-sm ml-2 whitespace-nowrap">{article.base_price.toLocaleString()} DA</span>
+                  </div>
+                </div>
+
+                <div className="mt-auto space-y-3 pt-2">
+                   {article.sizes?.map((size: any) => (
+                      <div key={size.id} className="">
+                         <div className="inline-flex items-center text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md mb-2">
+                            {size.size_label} {size.price_override ? <span className="font-medium opacity-80 ml-1">({size.price_override} DA)</span> : ""}
+                         </div>
+                         <div className="flex flex-wrap gap-2">
+                            {size.colors?.map((color: any) => (
+                               <button
+                                key={color.id}
+                                onClick={() => addToCart(article, size, color)}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all active:scale-95 group/btn relative overflow-hidden"
+                                title={"Add"}
+                               >
+                                  <div className="w-3 h-3 rounded-full border shadow-sm" style={{ backgroundColor: color.hex_code || "#cccccc" }} />
+                                  <span className="text-xs font-medium text-gray-700 group-hover/btn:text-blue-700">{color.color_name}</span>
+                                  {color.quantity <= 3 && (
+                                     <span className="absolute top-0 right-0 px-1 py-0.5 bg-orange-100 text-orange-700 text-[9px] font-bold rounded-bl-lg items-center flex leading-none">
+                                        {color.quantity}
+                                     </span>
+                                  )}
+                               </button>
+                            ))}
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             </div>
+          ))}
+          {results.length === 0 && !isPending && query.length > 0 && (
+             <div className="col-span-full py-10 text-center flex flex-col items-center justify-center space-y-3">
+                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                   <Search className="text-gray-400" size={28} />
+                 </div>
+                 <p className="text-gray-500 font-medium">No products found</p>
+             </div>
           )}
         </div>
+      </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 pb-4">
-            {results.map((article: any) => (
-               <Card key={article.id} className="p-4 flex flex-col hover:shadow-md transition shadow-sm border-gray-200">
-                  <div className="mb-2">
-                    <h3 className="font-semibold text-lg line-clamp-2 md:line-clamp-1" title={article.title}>{article.title}</h3>
-                    <p className="text-sm text-[var(--color-text-muted)]">{article.categoryName} {article.modelName ? `› ${article.modelName}` : ''}</p>
-                    <p className="font-medium text-[var(--color-primary)] mt-1">{article.base_price.toFixed(2)} DA</p>
-                  </div>
-                  
-                  <div className="mt-auto space-y-3 border-t pt-3">
-                     {article.sizes?.map((size: any) => (
-                        <div key={size.id} className="text-sm">
-                           <div className="font-medium text-[var(--color-text)] bg-[var(--color-surface)] px-2 py-0.5 rounded inline-block mb-1.5 border border-gray-100">
-                              {size.size_label} {size.price_override ? <span className="text-xs text-[var(--color-text-muted)] font-normal">({size.price_override} DA)</span> : ''}
-                           </div>
-                           <div className="flex flex-wrap gap-2">
-                              {size.colors?.map((color: any) => (
-                                 <button
-                                  key={color.id}
-                                  onClick={() => addToCart(article, size, color)}
-                                  className="flex items-center gap-1.5 px-2.5 py-1.5 border rounded-lg hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition active:scale-95 text-xs"
-                                  title={`Add ${color.color_name} (Stock: ${color.quantity})`}
-                                 >
-                                    <div className="w-3 h-3 rounded-full border border-black/10 shadow-sm shrink-0" style={{ backgroundColor: color.color_hex }} />
-                                    <span className="font-medium">{color.color_name}</span>
-                                    <span className="text-[var(--color-text-faint)] ml-1">({color.quantity})</span>
-                                 </button>
-                              ))}
-                           </div>
-                        </div>
-                     ))}
-                  </div>
-               </Card>
-            ))}
-            
-            {query.length >= 2 && !isPending && results.length === 0 && (
-              <div className="col-span-full mt-10 flex flex-col items-center justify-center text-[var(--color-text-muted)] bg-[var(--color-surface)] rounded-xl border border-dashed p-10">
-                <ScanBarcode size={48} className="mb-4 opacity-50" />
-                <p className="text-lg">No products found for "{query}"</p>
-                <p className="text-sm mt-1 opacity-70">Check spelling or try a different barcode</p>
+      {/* Desktop Cart */}
+      <div className="hidden lg:flex flex-col h-full bg-white ring-1 ring-gray-200/60 rounded-[2rem] shadow-sm overflow-hidden lg:w-[400px] xl:w-[450px] shrink-0 pointer-events-auto z-20">
+          <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+             <h2 className="text-xl font-bold font-display text-gray-900 flex items-center gap-2">
+               <ShoppingCart size={22} className="text-blue-600" />
+               Current Bon
+             </h2>
+             <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold shadow-inner">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)} items
+             </span>
+          </div>
+          <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3 bg-gray-50/20">
+            {cart.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
+                 <ShoppingCart size={64} className="opacity-20" />
+                 <p className="font-medium opacity-80">Cart is empty</p>
               </div>
-            )}
+            ) : (
+              cart.map(item => (
+                <div key={item.id} className="flex gap-4 p-4 bg-white ring-1 ring-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow group">
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
+                     <div>
+                       <h4 className="font-bold text-gray-900 leading-tight truncate">{item.title}</h4>
+                       <div className="flex items-center gap-2 mt-2">
+                         <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">{item.sizeLabel}</span>
+                         <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded-md">
+                           <div className="w-2.5 h-2.5 rounded-full border" style={{ backgroundColor: item.colorHex || "#ccc" }} />
+                           {item.colorName}
+                         </div>
+                       </div>
+                     </div>
+                     <p className="font-bold text-gray-900 mt-3">{(item.unitPrice * item.quantity).toLocaleString()} DA</p>
+                  </div>
 
-            {!query && cart.length === 0 && results.length === 0 && (
-               <div className="col-span-full mt-20 flex flex-col items-center justify-center text-[var(--color-text-muted)]">
-                 <Search size={48} className="mb-4 opacity-20" />
-                 <p className="text-lg">Ready to scan</p>
-                 <p className="text-sm text-[var(--color-text-faint)]">Search by name or use your barcode scanner</p>
-               </div>
-            )}
-        </div>
-      </div>
-
-      {/* Right side: Cart (Bon) */}
-      <div className="hidden lg:flex w-[380px] bg-white border border-gray-200 rounded-xl shadow-sm flex-col p-0 overflow-hidden flex-shrink-0">
-        <div className="p-4 border-b bg-gray-50/50 flex items-center justify-between">
-           <h2 className="font-semibold text-lg flex items-center gap-2">
-             <ShoppingCart size={20} className="text-[var(--color-primary)]" />
-             Current Bon
-           </h2>
-           <span className="bg-teal-100 text-[var(--color-primary)] text-xs px-2 py-1 rounded-full font-medium">
-             {cart.length} items
-           </span>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-           {cart.length === 0 ? (
-             <div className="h-full flex flex-col items-center justify-center text-gray-400 text-center">
-                 <ShoppingCart size={48} className="mb-4 opacity-20" />
-                 <p>Cart is empty</p>
-                 <p className="text-sm">Scan a barcode or search to add items.</p>
-             </div>
-           ) : (
-             cart.map((item) => (
-                <div key={item.id} className="flex flex-col border border-gray-100 p-3 rounded-lg shadow-sm hover:border-[var(--color-primary)]/30 transition group">
-                   <div className="flex justify-between items-start mb-1">
-                      <div className="font-medium text-sm line-clamp-2 pr-2">{item.title}</div>
-                      <div className="font-semibold text-sm whitespace-nowrap">{(item.unitPrice * item.quantity).toFixed(2)} DA</div>
-                   </div>
-                   
-                   <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
-                      <span className="bg-gray-100 px-1.5 py-0.5 rounded">{item.sizeLabel}</span>
-                      <div className="flex items-center gap-1">
-                        <div className="w-3 h-3 rounded-full border" style={{ backgroundColor: item.colorHex }} />
-                        {item.colorName}
-                      </div>
-                      <span className="ml-auto">{item.unitPrice.toFixed(2)} / u</span>
-                   </div>
-
-                   <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center bg-gray-50 border rounded-lg overflow-hidden">
-                         <button 
-                           onClick={() => updateQuantity(item.id, -1)}
-                           disabled={item.quantity <= 1}
-                           className="p-1 hover:bg-gray-200 disabled:opacity-50 text-gray-600 transition"
-                         >
-                           <Minus size={16} />
-                         </button>
-                         <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                         <button 
-                           onClick={() => updateQuantity(item.id, 1)}
-                           disabled={item.quantity >= item.maxQuantity}
-                           className="p-1 hover:bg-gray-200 disabled:opacity-50 text-gray-600 transition"
-                         >
-                           <Plus size={16} />
-                         </button>
-                      </div>
-                      <button 
-                        onClick={() => removeFromCart(item.id)}
-                        className="text-gray-400 hover:text-[var(--color-error)] p-1.5 hover:bg-red-50 rounded transition opacity-50 group-hover:opacity-100"
-                        title="Remove"
-                      >
-                         <Trash2 size={16} />
-                      </button>
-                   </div>
+                  <div className="flex flex-col items-center justify-between ml-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" onClick={() => removeFromCart(item.id)}>
+                      <Trash2 size={16} />
+                    </Button>
+                    <div className="flex items-center gap-2 mt-auto bg-gray-50 rounded-xl p-1 shadow-inner">
+                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-white hover:shadow-sm transition-all" onClick={() => updateQuantity(item.id, -1)} disabled={item.quantity <= 1}>
+                        <Minus size={14} />
+                      </Button>
+                      <span className="w-4 text-center font-bold text-sm">{item.quantity}</span>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-white hover:shadow-sm transition-all" onClick={() => updateQuantity(item.id, 1)} disabled={item.quantity >= item.maxQuantity}>
+                        <Plus size={14} />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-             ))
-           )}
-        </div>
-
-        <div className="p-4 border-t bg-gray-50">
-           <div className="flex justify-between items-end mb-4">
-              <span className="text-gray-500">Total Price</span>
-              <span className="text-2xl font-bold text-[var(--color-primary)]">{total.toFixed(2)} DA</span>
-           </div>
-           <Button 
-             className="w-full h-14 text-lg font-semibold gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
-             disabled={cart.length === 0 || isCheckoutPending}
-             onClick={handleCheckout}
-           >
-             {isCheckoutPending ? (
-               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-             ) : (
-               <CheckCircle2 size={20} />
-             )}
-             Validate Bon ({cart.length})
-           </Button>
-        </div>
+              ))
+            )}
+          </div>
+          <div className="p-6 bg-white border-t border-gray-100 space-y-6 shrink-0">
+             <div className="flex justify-between items-end">
+               <span className="text-sm font-semibold tracking-wider text-gray-400 uppercase">Total Pay:</span>
+               <span className="text-3xl font-black text-blue-600 tracking-tight">
+                 {cart.reduce((sum, it) => sum + (it.unitPrice * it.quantity), 0).toLocaleString()} 
+                 <span className="text-lg ml-1 font-medium">DA</span>
+               </span>
+             </div>
+             
+             <Button 
+              onClick={handleCheckout} 
+              disabled={cart.length === 0 || isCheckoutPending}
+              className="w-full h-16 rounded-2xl text-lg font-bold shadow-lg shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 focus:ring-emerald-500 transition-all"
+             >
+                {isCheckoutPending ? (
+                  <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle2 className="mr-2" size={24} />
+                    Validate Bon
+                  </>
+                )}
+             </Button>
+          </div>
       </div>
-      
-      <ScannerModal 
-         isOpen={isScannerOpen} 
-         onClose={() => setIsScannerOpen(false)} 
-         onScan={handleScan} 
+
+      {/* Mobile Sticky Cart Footer */}
+      <div className="fixed lg:hidden bottom-0 left-0 right-0 p-4 pb-6 bg-white/80 backdrop-blur-xl border-t border-gray-200/50 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-50">
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+              <Sheet>
+                 <SheetTrigger asChild>
+                    <Button variant="outline" className="flex-1 h-14 rounded-2xl border-gray-200/60 shadow-sm bg-white/80 hover:bg-white flex items-center justify-between px-5">
+                      <div className="flex items-center gap-3">
+                         <div className="relative">
+                           <ShoppingCart className="text-blue-600" size={22} />
+                           {cart.length > 0 && (
+                              <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold px-1 ring-2 ring-white">
+                                {cart.reduce((a,b)=>a+b.quantity, 0)}
+                              </span>
+                           )}
+                         </div>
+                         <div className="flex flex-col items-start leading-tight ml-2">
+                            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Voir Panier</span>
+                            <span className="font-bold text-gray-900">
+                              {cart.reduce((sum, it) => sum + (it.unitPrice * it.quantity), 0).toLocaleString()} DA
+                            </span>
+                         </div>
+                      </div>
+                    </Button>
+                 </SheetTrigger>
+                 <SheetContent side="bottom" className="h-[85vh] rounded-t-[2rem] p-0 flex flex-col bg-gray-50/50 z-[100]">
+                     <div className="p-6 border-b border-gray-100 bg-white shadow-sm flex items-center justify-between shrink-0">
+                        <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3">
+                          <ShoppingCart size={28} className="text-blue-600" />
+                          Mon Panier
+                        </h2>
+                     </div>
+                     <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-32">
+                        {cart.length === 0 ? (
+                          <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
+                             <ShoppingCart size={48} className="opacity-20" />
+                             <p className="font-medium opacity-80">Cart is empty</p>
+                          </div>
+                        ) : (
+                          cart.map(item => (
+                            <div key={item.id} className="flex gap-4 p-4 bg-white ring-1 ring-gray-100 rounded-2xl shadow-sm">
+                              <div className="flex-1 min-w-0">
+                                 <h4 className="font-bold text-gray-900 truncate">{item.title}</h4>
+                                 <div className="flex items-center gap-2 mt-2">
+                                   <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">{item.sizeLabel}</span>
+                                   <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded-md">
+                                     <div className="w-2.5 h-2.5 rounded-full border" style={{ backgroundColor: item.colorHex || "#ccc" }} />
+                                     {item.colorName}
+                                   </div>
+                                 </div>
+                                 <p className="font-bold text-gray-900 mt-2">{(item.unitPrice * item.quantity).toLocaleString()} DA</p>
+                              </div>
+                              <div className="flex flex-col items-end justify-between">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => removeFromCart(item.id)}>
+                                  <Trash2 size={16} />
+                                </Button>
+                                <div className="flex items-center gap-2 mt-auto bg-gray-50 rounded-lg p-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, -1)} disabled={item.quantity <= 1}>
+                                    <Minus size={14} />
+                                  </Button>
+                                  <span className="w-5 text-center font-bold">{item.quantity}</span>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, 1)} disabled={item.quantity >= item.maxQuantity}>
+                                    <Plus size={14} />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                     </div>
+                 </SheetContent>
+              </Sheet>
+
+              <Button 
+                onClick={handleCheckout} 
+                className="h-14 px-8 rounded-2xl font-bold bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
+                disabled={cart.length === 0 || isCheckoutPending}
+              >
+                {isCheckoutPending ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Valider"}
+              </Button>
+          </div>
+      </div>
+
+      <ScannerModal
+         isOpen={isScannerOpen}
+         onClose={() => setIsScannerOpen(false)}
+         onScan={handleScan}
       />
     </div>
   )

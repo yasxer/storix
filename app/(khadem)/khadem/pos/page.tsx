@@ -24,7 +24,7 @@ export default async function PosPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="flex-1 flex flex-col h-[calc(100vh-7.5rem)] overflow-hidden w-full max-w-[1600px] mx-auto bg-gray-50/30"> 
       <PosClient sessionId={session.id} khademId={user.id} />
     </div>
   )
