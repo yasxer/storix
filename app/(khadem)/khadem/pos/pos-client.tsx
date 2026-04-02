@@ -176,14 +176,14 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[var(--color-primary)] opacity-80 hover:opacity-100 transition"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-primary)] opacity-80 hover:opacity-100 transition h-14 w-14"
             onClick={() => setIsScannerOpen(true)}
             title="Open camera scanner"
           >
-            <Camera size={24} />
+            <Camera size={36} strokeWidth={2.5} />
           </Button>
           {isPending && (
-             <div className="absolute right-12 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+             <div className="absolute right-16 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
           )}
         </div>
 

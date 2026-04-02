@@ -19,7 +19,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const {
     register,
@@ -32,8 +31,9 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
+      const supabase = createClient()
       const { error: authError, data: authData } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
