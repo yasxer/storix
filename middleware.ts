@@ -35,6 +35,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (request.nextUrl.pathname.startsWith('/khadem')) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/auth/login', request.url))
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    if (!profile || (profile.role !== 'khadem' && profile.role !== 'admin')) {
+      return NextResponse.redirect(new URL('/auth/login', request.url))
+    }
+  }
+
   return supabaseResponse
 }
 
