@@ -27,7 +27,7 @@ export default async function OrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto w-full p-4 sm:p-6 lg:p-8">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold font-display text-[var(--color-text)]">Online Orders</h1>

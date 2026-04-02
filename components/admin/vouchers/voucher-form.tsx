@@ -24,7 +24,7 @@ const voucherSchema = z.object({
 
 type VoucherFormValues = z.infer<typeof voucherSchema>
 
-export function VoucherForm({ articles, initialData }: { articles: any[], initialData?: any }) {
+export function VoucherForm({ articles, initialData, redirectPath = "/admin/vouchers" }: { articles: any[], initialData?: any, redirectPath?: string }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -53,7 +53,7 @@ export function VoucherForm({ articles, initialData }: { articles: any[], initia
       
       if (result.error) throw new Error(result.error)
       
-      router.push("/admin/vouchers")
+      router.push(redirectPath)
       router.refresh()
     } catch (e: any) {
       alert("Error saving voucher: " + e.message)

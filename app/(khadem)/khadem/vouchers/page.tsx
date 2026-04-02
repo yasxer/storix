@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { Button } from "@/components/ui/button"
 import { Plus, Filter } from "lucide-react"
 import Link from "next/link"
@@ -7,8 +8,10 @@ import { VoucherRowActions } from "@/components/admin/vouchers/voucher-row-actio
 
 export default async function VouchersPage() {
   const supabase = await createClient() as any
+  const adminSupabase = createAdminClient() as any
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: vouchers } = await supabase
+  const { data: vouchers } = await adminSupabase
     .from("purchase_vouchers")
     .select(`
       *,
@@ -22,10 +25,11 @@ export default async function VouchersPage() {
         article_size_colors ( color_name )
       )
     `)
+    .eq("created_by", user?.id)
     .order("created_at", { ascending: false })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto w-full p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold font-display text-[var(--color-text)]">Purchase Vouchers</h1>

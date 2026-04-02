@@ -28,7 +28,7 @@ export default async function NewVoucherPage() {
         </p>
       </div>
 
-      <VoucherForm articles={articles || []} />
+      <VoucherForm articles={articles || []} redirectPath="/khadem/vouchers" />
     </div>
   )
 }
