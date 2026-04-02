@@ -5,7 +5,7 @@ import { useState, useTransition, useRef, useEffect, useCallback } from 'react'
 import { searchArticles, createBon } from './actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, Scanner, Minus, Plus, Trash2, ShoppingCart, CheckCircle2, Camera } from 'lucide-react'
+import { Search, ScanBarcode, Minus, Plus, Trash2, ShoppingCart, CheckCircle2, Camera } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 // Dynamically import ScannerModal to avoid SSR issues with html5-qrcode
