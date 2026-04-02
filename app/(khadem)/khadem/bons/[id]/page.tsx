@@ -91,7 +91,7 @@ export default async function ViewBonPage({ params }: { params: Promise<{ id: st
             </div>
             <div className="flex justify-between mt-4 pt-4 border-t">
               <span className="text-gray-500 font-semibold text-lg">Final Total:</span>
-              <span className="font-bold text-xl text-green-600">{bon.total_price.toLocaleString()} DA</span>
+              <span className="font-bold text-xl text-[var(--color-success)]">{bon.total_price.toLocaleString()} DA</span>
             </div>
           </div>
         </div>

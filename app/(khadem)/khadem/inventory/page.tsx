@@ -56,10 +56,10 @@ export default async function InventoryHubPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Products Card */}
-        <div className="group relative border border-gray-200/60 rounded-[2rem] p-8 bg-white shadow-sm hover:shadow-xl hover:border-blue-100 transition-all duration-300 flex flex-col h-full overflow-hidden text-left">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full blur-[60px] group-hover:bg-blue-100/50 transition-colors -mr-20 -mt-20"></div>
+        <div className="group relative border border-gray-200/60 rounded-[2rem] p-8 bg-white shadow-sm hover:shadow-xl hover:border-[var(--color-primary)]/20 transition-all duration-300 flex flex-col h-full overflow-hidden text-left">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary)]/5 rounded-full blur-[60px] group-hover:bg-[var(--color-primary)]/10 transition-colors -mr-20 -mt-20"></div>
           
-          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-blue-50 to-blue-100/80 border border-blue-100 rounded-2xl flex items-center justify-center mb-6 text-blue-600 shadow-sm group-hover:scale-110 transition-transform">
+          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-gray-50 to-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded-2xl flex items-center justify-center mb-6 text-[var(--color-primary)] shadow-sm group-hover:scale-110 transition-transform">
             <PackagePlus size={36} className="stroke-[1.5]" />
           </div>
           
@@ -75,7 +75,7 @@ export default async function InventoryHubPage() {
               </Button>
             </Link>
             <Link href="/khadem/products/new" className="flex-1">
-              <Button className="w-full rounded-full h-12 font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all gap-2">
+              <Button className="w-full rounded-full h-12 font-bold bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white shadow-md hover:shadow-lg transition-all gap-2">
                 Add Product <ArrowRight size={16} />
               </Button>
             </Link>
@@ -83,10 +83,10 @@ export default async function InventoryHubPage() {
         </div>
 
         {/* Vouchers / Bons d'Achat Card */}
-        <div className="group relative border border-gray-200/60 rounded-[2rem] p-8 bg-white shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all duration-300 flex flex-col h-full overflow-hidden text-left">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50/50 rounded-full blur-[60px] group-hover:bg-emerald-100/50 transition-colors -mr-20 -mt-20"></div>
+        <div className="group relative border border-gray-200/60 rounded-[2rem] p-8 bg-white shadow-sm hover:shadow-xl hover:border-[var(--color-success)]/20 transition-all duration-300 flex flex-col h-full overflow-hidden text-left">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-success)]/5 rounded-full blur-[60px] group-hover:bg-[var(--color-success)]/10 transition-colors -mr-20 -mt-20"></div>
           
-          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-emerald-50 to-emerald-100/80 border border-emerald-100 rounded-2xl flex items-center justify-center mb-6 text-emerald-600 shadow-sm group-hover:scale-110 transition-transform">
+          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-gray-50 to-[var(--color-success)]/10 border border-[var(--color-success)]/20 rounded-2xl flex items-center justify-center mb-6 text-[var(--color-success)] shadow-sm group-hover:scale-110 transition-transform">
             <ReceiptText size={36} className="stroke-[1.5]" />
           </div>
           
@@ -102,7 +102,7 @@ export default async function InventoryHubPage() {
               </Button>
             </Link>
             <Link href="/khadem/vouchers/new" className="flex-1">
-              <Button className="w-full rounded-full h-12 font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all gap-2">
+              <Button className="w-full rounded-full h-12 font-bold bg-[var(--color-success)] hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all gap-2">
                 New Bon <ArrowRight size={16} />
               </Button>
             </Link>

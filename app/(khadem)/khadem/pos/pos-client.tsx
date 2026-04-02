@@ -1,12 +1,11 @@
 'use client'
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
 import { useState, useTransition, useRef, useEffect, useCallback } from 'react'
 import { searchArticles, createBon } from './actions'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, ScanBarcode, Minus, Plus, Trash2, ShoppingCart, CheckCircle2, Camera } from 'lucide-react'
-import { Card } from '@/components/ui/card'
+import { Search, Scanner, Minus, Plus, Trash2, ShoppingCart, CheckCircle2, Camera } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 // Dynamically import ScannerModal to avoid SSR issues with html5-qrcode
@@ -94,16 +93,15 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
     setResults(defaultItems)
   }, [])
 
-  // Barcode scanner submission logic
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
      if (e.key === 'Enter') {
         const val = query
-        // Quick auto-add if perfectly matches one variant (like scanning an exact barcode logic here)
-        // If results length is 1, and its exact matches, etc...
      }
   }
 
   const addToCart = useCallback((article: any, size: any, color: any) => {
+    if (color.quantity <= 0) return; // Prevent adding zero stock
+
     const itemKey = `${article.id}-${size.id}-${color.id}`
     const unitPrice = size.price_override || article.base_price
     const maxQuantity = color.quantity
@@ -155,8 +153,8 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
     startCheckoutTransition(async () => {
        const res = await createBon(khademId, sessionId, total, cart)
        if (res.success) {
-          alert('Bon verified and created successfully!') // Replace with toast later
-          setCart([]) // Clear cart
+          alert('Bon verified and created successfully!') 
+          setCart([]) 
           searchRef.current?.focus()
        } else {
           alert('Failed to checkout: ' + res.error)
@@ -165,160 +163,216 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-full gap-4 p-4 lg:p-6 pb-24 lg:pb-6">
-      {/* Left side: Search & Results */}
-      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-        <div className="relative shrink-0 flex gap-2">
-          <div className="relative flex-1">
+    <div className="flex flex-col lg:flex-row h-full gap-6 p-4 lg:p-6 pb-24 lg:pb-6 bg-[var(--color-surface)] min-h-[calc(100vh-140px)]">
+      
+      {/* Left side: Search & Grid */}
+      <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+        
+        {/* Search Bar */}
+        <div className="relative shrink-0 flex gap-3 h-14">
+          <div className="relative flex-1 h-full">
             <Input
               ref={searchRef}
               autoFocus
-              className="w-full pl-11 pr-4 py-6 text-lg border-none shadow-sm ring-1 ring-gray-200/60 rounded-2xl bg-white focus-visible:ring-blue-500 focus-visible:border-transparent transition-shadow"
-              placeholder="Scan barcode or type article name..."
+              className="w-full h-full pl-12 pr-4 text-base bg-white border border-[var(--color-border)] rounded-xl shadow-sm focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] focus-visible:border-[var(--color-primary)] transition-all"
+              placeholder="Scan barcode or search products..."
               value={query}
               onChange={handleSearch}
               onKeyDown={handleKeyDown}
             />
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={22} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" size={20} />
             {isPending && (
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
             )}
           </div>
           <Button
             size="icon"
-            className="shrink-0 h-full aspect-square rounded-2xl bg-gray-900 hover:bg-gray-800 text-white shadow-md transition-transform active:scale-95"
+            variant="outline"
+            className="shrink-0 h-full w-14 rounded-xl bg-white border-[var(--color-border)] shadow-sm hover:bg-gray-50 text-[var(--color-text)] transition-colors"
             onClick={() => setIsScannerOpen(true)}
-            title="Open camera scanner"
+            title="Open scanner camera"
           >
-            <Camera size={26} />
+            <Camera size={24} />
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto no-scrollbar grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-24 lg:pb-0">
+        {/* Product Grid */}
+        <div className="flex-1 overflow-y-auto no-scrollbar grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-24 lg:pb-0">
           {results.map((article: any) => (
-             <div key={article.id} className="group flex flex-col bg-white ring-1 ring-gray-200/60 rounded-3xl p-5 hover:shadow-xl hover:shadow-blue-900/5 hover:ring-blue-200 transition-all duration-300">
-                <div className="mb-3">
-                  <div className="flex justify-between items-start">
-                     <div>
-                       <h3 className="font-bold text-gray-900 text-lg line-clamp-1" title={article.title}>{article.title}</h3>
-                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mt-0.5">{article.categoryName}</p>
-                     </div>
-                     <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-bold text-sm ml-2 whitespace-nowrap">{article.base_price.toLocaleString()} DA</span>
-                  </div>
+             <div key={article.id} className="bg-white border border-[var(--color-border)] hover:border-[var(--color-primary)] shadow-sm rounded-xl p-4 flex flex-col transition-colors">
+                
+                {/* Card Header */}
+                <div className="flex justify-between items-start mb-4 gap-2">
+                   <div className="min-w-0">
+                     <h3 className="font-semibold text-[var(--color-text)] text-base truncate" title={article.title}>
+                       {article.title}
+                     </h3>
+                     <p className="text-[11px] font-medium text-[var(--color-text-muted)] uppercase tracking-wider mt-0.5">
+                       {article.categoryName || "Variant"}
+                     </p>
+                   </div>
+                   <span className="shrink-0 bg-[var(--color-primary)]/10 text-[var(--color-primary)] px-2 py-1 rounded-md text-sm font-bold">
+                     {article.base_price.toLocaleString()} DA
+                   </span>
                 </div>
 
-                <div className="mt-auto space-y-3 pt-2">
+                {/* Card Sizes & Colors */}
+                <div className="flex-1 space-y-4">
                    {article.sizes?.map((size: any) => (
-                      <div key={size.id} className="">
-                         <div className="inline-flex items-center text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md mb-2">
-                            {size.size_label} {size.price_override ? <span className="font-medium opacity-80 ml-1">({size.price_override} DA)</span> : ""}
+                      <div key={size.id} className="pt-3 border-t border-[var(--color-border)]/50">
+                         <div className="flex items-center gap-2 mb-2">
+                            <span className="text-[13px] font-semibold text-[var(--color-text-muted)]">Size: {size.size_label}</span>
+                            {size.price_override && (
+                              <span className="text-[11px] bg-[var(--color-warning)]/10 text-[var(--color-warning)] px-1.5 py-0.5 rounded font-bold">
+                                {size.price_override} DA
+                              </span>
+                            )}
                          </div>
-                         <div className="flex flex-wrap gap-2">
-                            {size.colors?.map((color: any) => (
-                               <button
-                                key={color.id}
-                                onClick={() => addToCart(article, size, color)}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all active:scale-95 group/btn relative overflow-hidden"
-                                title={"Add"}
-                               >
-                                  <div className="w-3 h-3 rounded-full border shadow-sm" style={{ backgroundColor: color.hex_code || "#cccccc" }} />
-                                  <span className="text-xs font-medium text-gray-700 group-hover/btn:text-blue-700">{color.color_name}</span>
-                                  {color.quantity <= 3 && (
-                                     <span className="absolute top-0 right-0 px-1 py-0.5 bg-orange-100 text-orange-700 text-[9px] font-bold rounded-bl-lg items-center flex leading-none">
-                                        {color.quantity}
-                                     </span>
-                                  )}
-                               </button>
-                            ))}
+                         
+                         {/* Color Buttons */}
+                         <div className="grid grid-cols-2 gap-2">
+                            {size.colors?.map((color: any) => {
+                               const outOfStock = color.quantity <= 0;
+                               return (
+                                 <button
+                                  key={color.id}
+                                  onClick={() => addToCart(article, size, color)}
+                                  disabled={outOfStock}
+                                  className={`flex items-center justify-between p-2 border rounded-lg transition-colors text-left group
+                                    ${outOfStock 
+                                      ? 'bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed' 
+                                      : 'bg-white border-[var(--color-border)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 cursor-pointer'
+                                    }`}
+                                 >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <div className="w-3 h-3 shrink-0 rounded-full border border-black/10" style={{ backgroundColor: color.hex_code || "#cccccc" }} />
+                                      <span className={`text-[13px] font-medium truncate ${outOfStock ? 'text-gray-400' : 'text-[var(--color-text)] group-hover:text-[var(--color-primary)]'}`}>
+                                        {color.color_name}
+                                      </span>
+                                    </div>
+                                    <span className={`text-[11px] font-mono ml-1 ${
+                                      outOfStock ? 'text-red-500 font-bold' 
+                                      : color.quantity <= 3 ? 'text-orange-500 font-bold' 
+                                      : 'text-[var(--color-text-muted)]'
+                                    }`}>
+                                      {outOfStock ? '0' : color.quantity}
+                                    </span>
+                                 </button>
+                               )
+                            })}
                          </div>
                       </div>
                    ))}
                 </div>
              </div>
           ))}
+
+          {/* Empty State */}
           {results.length === 0 && !isPending && query.length > 0 && (
-             <div className="col-span-full py-10 text-center flex flex-col items-center justify-center space-y-3">
-                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                   <Search className="text-gray-400" size={28} />
+             <div className="col-span-full py-20 flex flex-col items-center justify-center space-y-4">
+                 <div className="w-16 h-16 bg-white border border-[var(--color-border)] rounded-full flex items-center justify-center shadow-sm">
+                   <Search className="text-[var(--color-text-muted)]" size={24} />
                  </div>
-                 <p className="text-gray-500 font-medium">No products found</p>
+                 <p className="text-[var(--color-text-muted)] font-medium">No products found matching your search.</p>
              </div>
           )}
         </div>
       </div>
 
-      {/* Desktop Cart */}
-      <div className="hidden lg:flex flex-col h-full bg-white ring-1 ring-gray-200/60 rounded-[2rem] shadow-sm overflow-hidden lg:w-[400px] xl:w-[450px] shrink-0 pointer-events-auto z-20">
-          <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-             <h2 className="text-xl font-bold font-display text-gray-900 flex items-center gap-2">
-               <ShoppingCart size={22} className="text-blue-600" />
+      {/* Right Side: Desktop Cart Sidebar */}
+      <div className="hidden lg:flex flex-col h-full bg-white border border-[var(--color-border)] rounded-xl shadow-sm w-[380px] xl:w-[420px] shrink-0 overflow-hidden">
+          {/* Cart Header */}
+          <div className="p-5 border-b border-[var(--color-border)] bg-gray-50/30 flex justify-between items-center shrink-0">
+             <h2 className="text-lg font-bold text-[var(--color-text)] flex items-center gap-2">
+               <ShoppingCart size={20} className="text-[var(--color-primary)]" />
                Current Bon
              </h2>
-             <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold shadow-inner">
-                {cart.reduce((sum, item) => sum + item.quantity, 0)} items
+             <span className="bg-[var(--color-primary)]/10 text-[var(--color-primary)] px-2.5 py-1 rounded-md text-xs font-bold ring-1 ring-[var(--color-primary)]/20 shadow-sm">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)} Items
              </span>
           </div>
-          <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3 bg-gray-50/20">
+
+          {/* Cart Items */}
+          <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-3 bg-[#fdfdfd]">
             {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
-                 <ShoppingCart size={64} className="opacity-20" />
-                 <p className="font-medium opacity-80">Cart is empty</p>
+              <div className="h-full flex flex-col items-center justify-center text-[var(--color-text-muted)] space-y-4">
+                 <ShoppingCart size={48} className="opacity-20" />
+                 <p className="font-medium text-sm">Cart is empty. Scan an item to start.</p>
               </div>
             ) : (
               cart.map(item => (
-                <div key={item.id} className="flex gap-4 p-4 bg-white ring-1 ring-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow group">
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                     <div>
-                       <h4 className="font-bold text-gray-900 leading-tight truncate">{item.title}</h4>
-                       <div className="flex items-center gap-2 mt-2">
-                         <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">{item.sizeLabel}</span>
-                         <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded-md">
-                           <div className="w-2.5 h-2.5 rounded-full border" style={{ backgroundColor: item.colorHex || "#ccc" }} />
+                <div key={item.id} className="flex flex-col gap-3 p-3 bg-white border border-[var(--color-border)] rounded-lg shadow-sm hover:border-[var(--color-primary)]/50 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1 min-w-0 pr-3">
+                       <h4 className="font-semibold text-sm text-[var(--color-text)] leading-tight">{item.title}</h4>
+                       <div className="flex items-center gap-2 mt-1.5 text-[12px] text-[var(--color-text-muted)]">
+                         <span className="font-medium text-[var(--color-text)] bg-gray-100 px-1.5 py-0.5 rounded">{item.sizeLabel}</span>
+                         <span className="flex items-center gap-1">
+                           <div className="w-2.5 h-2.5 rounded-full border border-black/10" style={{ backgroundColor: item.colorHex || "#ccc" }} />
                            {item.colorName}
-                         </div>
+                         </span>
                        </div>
-                     </div>
-                     <p className="font-bold text-gray-900 mt-3">{(item.unitPrice * item.quantity).toLocaleString()} DA</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                       <span className="font-bold text-[var(--color-text)]">{(item.unitPrice * item.quantity).toLocaleString()}</span>
+                       <span className="text-[10px] text-[var(--color-text-muted)] ml-1">DA</span>
+                    </div>
                   </div>
 
-                  <div className="flex flex-col items-center justify-between ml-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" onClick={() => removeFromCart(item.id)}>
-                      <Trash2 size={16} />
-                    </Button>
-                    <div className="flex items-center gap-2 mt-auto bg-gray-50 rounded-xl p-1 shadow-inner">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-white hover:shadow-sm transition-all" onClick={() => updateQuantity(item.id, -1)} disabled={item.quantity <= 1}>
-                        <Minus size={14} />
-                      </Button>
-                      <span className="w-4 text-center font-bold text-sm">{item.quantity}</span>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-white hover:shadow-sm transition-all" onClick={() => updateQuantity(item.id, 1)} disabled={item.quantity >= item.maxQuantity}>
-                        <Plus size={14} />
-                      </Button>
+                  <div className="flex items-center justify-between border-t border-[var(--color-border)]/50 pt-2.5 mt-1">
+                    <button 
+                      onClick={() => removeFromCart(item.id)}
+                      className="text-[var(--color-error)] text-[12px] font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors flex items-center gap-1"
+                    >
+                      <Trash2 size={12} /> Remove
+                    </button>
+                    
+                    <div className="flex items-center gap-1 bg-gray-50 border border-[var(--color-border)] rounded-md p-0.5">
+                      <button 
+                        className="w-7 h-7 flex items-center justify-center bg-white rounded hover:bg-gray-100 disabled:opacity-50 transition-colors shadow-sm" 
+                        onClick={() => updateQuantity(item.id, -1)} 
+                        disabled={item.quantity <= 1}
+                      >
+                        <Minus size={14} className="text-[var(--color-text)]" />
+                      </button>
+                      <span className="w-8 text-center font-bold text-[13px] font-mono">{item.quantity}</span>
+                      <button 
+                        className="w-7 h-7 flex items-center justify-center bg-white rounded hover:bg-gray-100 disabled:opacity-50 transition-colors shadow-sm" 
+                        onClick={() => updateQuantity(item.id, 1)} 
+                        disabled={item.quantity >= item.maxQuantity}
+                      >
+                        <Plus size={14} className="text-[var(--color-text)]" />
+                      </button>
                     </div>
                   </div>
                 </div>
               ))
             )}
           </div>
-          <div className="p-6 bg-white border-t border-gray-100 space-y-6 shrink-0">
+
+          {/* Cart Footer */}
+          <div className="p-5 bg-white border-t border-[var(--color-border)] shrink-0 space-y-5">
              <div className="flex justify-between items-end">
-               <span className="text-sm font-semibold tracking-wider text-gray-400 uppercase">Total Pay:</span>
-               <span className="text-3xl font-black text-blue-600 tracking-tight">
-                 {cart.reduce((sum, it) => sum + (it.unitPrice * it.quantity), 0).toLocaleString()} 
-                 <span className="text-lg ml-1 font-medium">DA</span>
-               </span>
+               <span className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Total Pay</span>
+               <div className="text-right">
+                 <span className="text-3xl font-black text-[var(--color-primary)] tracking-tight">
+                   {total.toLocaleString()} 
+                 </span>
+                 <span className="text-sm font-bold text-[var(--color-text-muted)] ml-1">DA</span>
+               </div>
              </div>
              
              <Button 
               onClick={handleCheckout} 
               disabled={cart.length === 0 || isCheckoutPending}
-              className="w-full h-16 rounded-2xl text-lg font-bold shadow-lg shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 focus:ring-emerald-500 transition-all"
+              className="w-full h-14 rounded-lg text-base font-bold bg-[var(--color-success)] hover:opacity-90 transition-opacity text-white shadow-sm disabled:opacity-50"
              >
                 {isCheckoutPending ? (
-                  <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <CheckCircle2 className="mr-2" size={24} />
-                    Validate Bon
+                    <CheckCircle2 className="mr-2" size={20} />
+                    Validate Order
                   </>
                 )}
              </Button>
@@ -326,68 +380,70 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
       </div>
 
       {/* Mobile Sticky Cart Footer */}
-      <div className="fixed lg:hidden bottom-0 left-0 right-0 p-4 pb-6 bg-white/80 backdrop-blur-xl border-t border-gray-200/50 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-50">
-          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+      <div className="fixed lg:hidden bottom-0 left-0 right-0 p-4 bg-white border-t border-[var(--color-border)] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50 rounded-t-xl">
+          <div className="max-w-2xl mx-auto flex items-center gap-3">
               <Sheet>
                  <SheetTrigger asChild>
-                    <Button variant="outline" className="flex-1 h-14 rounded-2xl border-gray-200/60 shadow-sm bg-white/80 hover:bg-white flex items-center justify-between px-5">
+                    <Button variant="outline" className="flex-1 h-12 rounded-lg border-[var(--color-border)] bg-gray-50 hover:bg-gray-100 flex items-center justify-between px-4 transition-colors">
                       <div className="flex items-center gap-3">
                          <div className="relative">
-                           <ShoppingCart className="text-blue-600" size={22} />
+                           <ShoppingCart className="text-[var(--color-text)]" size={20} />
                            {cart.length > 0 && (
-                              <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold px-1 ring-2 ring-white">
+                              <span className="absolute -top-2 -right-3 min-w-[18px] h-[18px] bg-[var(--color-error)] text-white rounded-full flex items-center justify-center text-[10px] font-bold px-1 ring-2 ring-white">
                                 {cart.reduce((a,b)=>a+b.quantity, 0)}
                               </span>
                            )}
                          </div>
                          <div className="flex flex-col items-start leading-tight ml-2">
-                            <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Voir Panier</span>
-                            <span className="font-bold text-gray-900">
-                              {cart.reduce((sum, it) => sum + (it.unitPrice * it.quantity), 0).toLocaleString()} DA
+                            <span className="text-[10px] text-[var(--color-text-muted)] font-semibold uppercase tracking-wider">Review Cart</span>
+                            <span className="font-bold text-[13px] text-[var(--color-text)]">
+                              {total.toLocaleString()} DA
                             </span>
                          </div>
                       </div>
                     </Button>
                  </SheetTrigger>
-                 <SheetContent side="bottom" className="h-[85vh] rounded-t-[2rem] p-0 flex flex-col bg-gray-50/50 z-[100]">
-                     <div className="p-6 border-b border-gray-100 bg-white shadow-sm flex items-center justify-between shrink-0">
-                        <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3">
-                          <ShoppingCart size={28} className="text-blue-600" />
-                          Mon Panier
+                 <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0 flex flex-col bg-gray-50 z-[100]">
+                     <SheetTitle className="sr-only">Mobile Cart</SheetTitle>
+                     <div className="p-4 border-b border-[var(--color-border)] bg-white flex items-center justify-between shrink-0">
+                        <h2 className="text-xl font-bold text-[var(--color-text)] flex items-center gap-2">
+                          <ShoppingCart size={22} className="text-[var(--color-primary)]" />
+                          Mobile Cart
                         </h2>
+                        <span className="bg-[var(--color-primary)]/10 text-[var(--color-primary)] px-2 py-1 rounded text-xs font-bold">
+                           {cart.reduce((a,b)=>a+b.quantity, 0)} Items
+                        </span>
                      </div>
-                     <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-32">
+
+                     <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#fdfdfd]">
                         {cart.length === 0 ? (
-                          <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
-                             <ShoppingCart size={48} className="opacity-20" />
-                             <p className="font-medium opacity-80">Cart is empty</p>
-                          </div>
+                           <div className="flex flex-col items-center justify-center h-full text-[var(--color-text-muted)]">
+                             <ShoppingCart size={40} className="mb-2 opacity-20" />
+                             <p className="text-sm font-medium">Cart is empty</p>
+                           </div>
                         ) : (
                           cart.map(item => (
-                            <div key={item.id} className="flex gap-4 p-4 bg-white ring-1 ring-gray-100 rounded-2xl shadow-sm">
-                              <div className="flex-1 min-w-0">
-                                 <h4 className="font-bold text-gray-900 truncate">{item.title}</h4>
-                                 <div className="flex items-center gap-2 mt-2">
-                                   <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">{item.sizeLabel}</span>
-                                   <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium bg-gray-50 px-2 py-0.5 rounded-md">
-                                     <div className="w-2.5 h-2.5 rounded-full border" style={{ backgroundColor: item.colorHex || "#ccc" }} />
-                                     {item.colorName}
-                                   </div>
-                                 </div>
-                                 <p className="font-bold text-gray-900 mt-2">{(item.unitPrice * item.quantity).toLocaleString()} DA</p>
+                            <div key={item.id} className="flex flex-col gap-2 p-3 bg-white border border-[var(--color-border)] rounded-lg shadow-sm">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1 min-w-0 pr-2">
+                                   <h4 className="font-semibold text-sm text-[var(--color-text)]">{item.title}</h4>
+                                   <p className="text-[12px] text-[var(--color-text-muted)] flex items-center gap-1 mt-1">
+                                     <span className="bg-gray-100 text-[var(--color-text)] px-1 rounded font-medium">{item.sizeLabel}</span>
+                                     • 
+                                     <span className="flex items-center gap-1 border rounded px-1">
+                                        <span className="w-2 h-2 rounded-full border border-black/10" style={{backgroundColor: item.colorHex}}/> 
+                                        {item.colorName}
+                                     </span>
+                                   </p>
+                                </div>
+                                <span className="font-bold text-[13px] text-[var(--color-text)] whitespace-nowrap">{(item.unitPrice * item.quantity).toLocaleString()} DA</span>
                               </div>
-                              <div className="flex flex-col items-end justify-between">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500" onClick={() => removeFromCart(item.id)}>
-                                  <Trash2 size={16} />
-                                </Button>
-                                <div className="flex items-center gap-2 mt-auto bg-gray-50 rounded-lg p-1">
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, -1)} disabled={item.quantity <= 1}>
-                                    <Minus size={14} />
-                                  </Button>
-                                  <span className="w-5 text-center font-bold">{item.quantity}</span>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, 1)} disabled={item.quantity >= item.maxQuantity}>
-                                    <Plus size={14} />
-                                  </Button>
+                              <div className="flex items-center justify-between mt-2 pt-2 border-t border-[var(--color-border)]/50">
+                                <button className="text-[var(--color-error)] text-xs font-medium px-2 py-1 bg-red-50 rounded" onClick={() => removeFromCart(item.id)}>Remove</button>
+                                <div className="flex items-center gap-1 bg-gray-50 border border-[var(--color-border)] rounded p-0.5">
+                                  <button className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm" onClick={() => updateQuantity(item.id, -1)} disabled={item.quantity <= 1}><Minus size={14} /></button>
+                                  <span className="w-8 text-center font-bold text-[13px] font-mono">{item.quantity}</span>
+                                  <button className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm" onClick={() => updateQuantity(item.id, 1)} disabled={item.quantity >= item.maxQuantity}><Plus size={14} /></button>
                                 </div>
                               </div>
                             </div>
@@ -399,10 +455,10 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
 
               <Button 
                 onClick={handleCheckout} 
-                className="h-14 px-8 rounded-2xl font-bold bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
+                className="h-12 px-6 rounded-lg font-bold bg-[var(--color-success)] hover:opacity-90 shadow-sm text-white disabled:opacity-50"
                 disabled={cart.length === 0 || isCheckoutPending}
               >
-                {isCheckoutPending ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Valider"}
+                {isCheckoutPending ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Checkout"}
               </Button>
           </div>
       </div>

@@ -50,14 +50,14 @@ export default async function KhademHomePage() {
     <div className="flex-1 flex flex-col xl:flex-row gap-8 items-start p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">      
       {/* Left Column: Session Card */}
       <div className="w-full xl:w-[420px] shrink-0 space-y-6">
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-3xl p-8 shadow-xl shadow-blue-900/20 relative overflow-hidden">
+        <div className="bg-[var(--color-primary)] text-white rounded-3xl p-8 shadow-md relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <TrendingUp size={120} />
           </div>
           <h1 className="text-3xl font-display font-bold mb-2 relative z-10">
             Hi, {profile?.full_name?.split(' ')[0] || 'Khadem'}! ??
           </h1>
-          <p className="text-blue-100 text-sm mb-6 relative z-10 max-w-[280px]">
+          <p className="text-white/80 text-sm mb-6 relative z-10 max-w-[280px]">
             {isSessionOpen 
                ? "Your shift is active. Tap the button below to start taking orders."
                : "A new day begins. Open your session to start registering sales."}
@@ -65,7 +65,7 @@ export default async function KhademHomePage() {
           
           {isSessionOpen && (
             <Link href="/khadem/pos" className="relative z-10 block">
-              <Button size="lg" className="w-full h-14 text-lg font-semibold gap-2 bg-white text-blue-700 hover:bg-blue-50 shadow-lg transition-transform hover:scale-[1.02]"> 
+              <Button size="lg" className="w-full h-14 text-lg font-semibold gap-2 bg-white text-[var(--color-primary)] hover:bg-gray-50 shadow-sm transition-transform hover:scale-[1.02]"> 
                 <Plus size={22} className="stroke-[3]" />
                 New POS Receipt
               </Button>
@@ -73,7 +73,7 @@ export default async function KhademHomePage() {
           )}
           {!session && (
             <form action={openSession} className="relative z-10 w-full">
-              <Button type="submit" size="lg" className="w-full h-14 text-lg font-semibold gap-2 bg-white text-blue-700 hover:bg-blue-50 shadow-lg transition-transform hover:scale-[1.02]">
+              <Button type="submit" size="lg" className="w-full h-14 text-lg font-semibold gap-2 bg-white text-[var(--color-primary)] hover:bg-gray-50 shadow-sm transition-transform hover:scale-[1.02]">
                 <Play size={20} className="fill-current" />
                 Start Shift (Open Session)
               </Button>
@@ -97,10 +97,10 @@ export default async function KhademHomePage() {
                    <p className="text-5xl font-black text-gray-900 tracking-tight">{totalRecette.toLocaleString()}<span className="text-2xl text-gray-400 ml-2 font-medium">DA</span></p>
                </div>
                <div className="p-4 bg-gray-50/50 flex justify-between items-center px-8">
-                  <div className="flex items-center gap-2 text-sm font-medium text-emerald-600">
+                  <div className="flex items-center gap-2 text-sm font-medium" style={{ color: 'var(--color-success)' }}>
                     <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: 'var(--color-success)' }}></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3" style={{ backgroundColor: 'var(--color-success)' }}></span>
                     </span>
                     Shift Active
                   </div>
@@ -135,7 +135,7 @@ export default async function KhademHomePage() {
         <div className="flex-1 w-full bg-white border-none ring-1 ring-gray-200/60 rounded-3xl shadow-sm overflow-hidden flex flex-col h-full min-h-[500px]">
           <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center shrink-0">
              <div className="flex items-center gap-3">
-               <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+               <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
                  <Receipt size={20} />
                </div>
                <div>
@@ -170,22 +170,22 @@ export default async function KhademHomePage() {
 
                   return (
                     <tr key={bon.id} className={`group transition-all ${bon.is_deleted ? 'opacity-50' : ''}`}>
-                      <td className="px-4 py-4 whitespace-nowrap bg-gray-50 group-hover:bg-blue-50/50 rounded-l-2xl transition-colors">  
+                      <td className="px-4 py-4 whitespace-nowrap bg-gray-50 group-hover:bg-[#f8f9fa] rounded-l-2xl transition-colors">  
                         <div className="font-medium text-gray-900">{format(new Date(bon.created_at), "HH:mm")}</div>
                       </td>
-                      <td className="px-4 py-4 font-mono text-xs text-gray-500 bg-gray-50 group-hover:bg-blue-50/50 transition-colors">
+                      <td className="px-4 py-4 font-mono text-xs text-gray-500 bg-gray-50 group-hover:bg-[#f8f9fa] transition-colors">
                         <span className="bg-white px-2 py-1 rounded-md border border-gray-200">...{bon.id.slice(-8)}</span>
-                        {bon.is_deleted && <span className="ml-2 text-red-500 font-semibold px-2 py-1 bg-red-50 rounded-md">Deleted</span>}
+                        {bon.is_deleted && <span className="ml-2 text-[var(--color-error)] font-semibold px-2 py-1 bg-red-50 rounded-md">Deleted</span>}
                       </td>
-                      <td className="px-4 py-4 text-center bg-gray-50 group-hover:bg-blue-50/50 transition-colors">
+                      <td className="px-4 py-4 text-center bg-gray-50 group-hover:bg-[#f8f9fa] transition-colors">
                         <span className="inline-flex items-center justify-center bg-white border border-gray-200 w-8 h-8 rounded-full font-medium text-gray-700 shadow-sm">{itemsCount}</span>
                       </td>
-                      <td className="px-4 py-4 text-right bg-gray-50 group-hover:bg-blue-50/50 transition-colors">       
+                      <td className="px-4 py-4 text-right bg-gray-50 group-hover:bg-[#f8f9fa] transition-colors">       
                         <span className="font-bold text-gray-900">{bon.total_price.toLocaleString()} <span className="text-gray-500 font-medium text-xs">DA</span></span>
                       </td>
-                      <td className="px-4 py-4 text-right bg-gray-50 group-hover:bg-blue-50/50 rounded-r-2xl transition-colors">
+                      <td className="px-4 py-4 text-right bg-gray-50 group-hover:bg-[#f8f9fa] rounded-r-2xl transition-colors">
                         <Link href={`/khadem/bons/${bon.id}`}>
-                          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-full h-8 px-4 font-medium">
+                          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:bg-gray-200/50 rounded-full h-8 px-4 font-medium">
                             View <ArrowRight size={14} className="ml-1" />
                           </Button>
                         </Link>

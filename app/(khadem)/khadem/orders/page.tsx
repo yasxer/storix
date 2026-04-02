@@ -63,7 +63,7 @@ export default async function OrdersPage() {
                   <tr key={order.id} className="hover:bg-[#f8f9fa] transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-[var(--color-primary)] hover:underline mb-1 cursor-pointer">#{order.id.slice(0, 8)}</div>
-                      <span className="text-xs text-gray-500 font-mono"><span className={"w-2 h-2 inline-block rounded-full bg-blue-500  mr-1"}></span>C.O.D</span>
+                      <span className="text-xs text-gray-500 font-mono"><span className={"w-2 h-2 inline-block rounded-full bg-[var(--color-primary)] mr-1"}></span>C.O.D</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-medium">{order.client_name} {order.client_lastname}</div>

@@ -29,7 +29,7 @@ export function KhademNav() {
             className={cn(
               "flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-full transition-all whitespace-nowrap",
               isActive 
-                ? "bg-[var(--color-primary)] text-white shadow-md shadow-blue-500/20" 
+                ? "bg-[var(--color-primary)] text-white shadow-md shadow-black/5" 
                 : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
             )}
           >
