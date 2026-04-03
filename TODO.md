@@ -53,13 +53,18 @@ Use this file to track your progress. Check off items by changing `[ ]` to `[x]`
 - [ ] **Today's Bons**: View today's receipts, soft-delete (cancel) current day's mistake bons (restores stock).
 
 ## 6. Client Storefront (Public E-Commerce) - `/`
-- [ ] **Layout & UI**: Public header, category navigation, footer, cart drawer.
-- [ ] **Home Page**: Hero banner (from store settings), new/featured products.
-- [ ] **Product Catalog**: Browse products with filters (category, model).
-- [ ] **Product Detail Page**: Photos gallery, sizes/colors selection, add to cart.
-- [ ] **Checkout Flow**: 
-  - [ ] Cart state management (LocalStorage/Zustand)
-  - [ ] Checkout form (Name, Phone, Wilaya, Delivery option)
-  - [ ] Dynamic total calculation based on delivery fees
-  - [ ] Submit COD (Cash on Delivery) order.
-- [ ] **Order Tracking (Optional)**: Check order status with ID/Phone.
+- [x] 1. DB migrations (hero fields, is_featured, is_on_sale)
+- [x] 2. Admin settings update (hero fields + product form flags)
+- [x] 3. Zustand cart store
+- [x] 4. Store layout (header + footer)
+- [x] 5. Homepage
+- [x] 6. Category page (models OR articles logic)
+- [x] 7. Model page
+- [x] 8. Product detail page
+- [x] 9. Boutique page
+- [x] 10. Cart page
+- [x] 11. Checkout page
+- [x] 12. Confirmation page
+- [ ] 13. Order tracking page
+- [ ] 14. Auth pages (login + register)
+- [ ] 15. Client account page

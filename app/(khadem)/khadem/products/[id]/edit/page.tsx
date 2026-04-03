@@ -55,6 +55,9 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     low_stock_threshold: article.low_stock_threshold,
     barcode: article.barcode || "",
     is_published: article.is_published,
+    is_featured: article.is_featured,
+    is_on_sale: article.is_on_sale,
+    sale_percentage: article.sale_percentage,
     
     existingPhotos: (article.article_photos as any[])?.sort((a,b) => a.position - b.position) || [],
     

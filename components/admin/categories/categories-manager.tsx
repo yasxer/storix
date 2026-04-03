@@ -1,0 +1,304 @@
+
+"use client"
+
+import React, { useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { useDropzone } from "react-dropzone"
+import { toast } from "sonner"
+import { Loader2, Plus, Trash2, Edit, UploadCloud, X, ChevronDown, ChevronRight, PackageOpen } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { v4 as uuidv4 } from "uuid"
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+
+import { createCategory, updateCategory, deleteCategory, createModel, deleteModel } from "@/app/(admin)/admin/categories/actions"
+
+export function CategoriesManager({ categories }: { categories: any[] }) {
+  const [open, setOpen] = useState(false)
+  const [modelOpen, setModelOpen] = useState<string | null>(null)
+  
+  const [editId, setEditId] = useState<string | null>(null)
+  const [name, setName] = useState("")
+  const [imageUrl, setImageUrl] = useState("")
+  const [uploading, setUploading] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({})
+
+  // Model form
+  const [modelName, setModelName] = useState("")
+  const [modelLoading, setModelLoading] = useState(false)
+
+  const supabase = createClient()
+
+  const resetForm = () => {
+    setEditId(null)
+    setName("")
+    setImageUrl("")
+    setOpen(false)
+  }
+
+  const openEdit = (cat: any) => {
+    setEditId(cat.id)
+    setName(cat.name)
+    setImageUrl(cat.image_url || "")
+    setOpen(true)
+  }
+
+  const onDrop = async (acceptedFiles: File[]) => {
+    if (!acceptedFiles || acceptedFiles.length === 0) return
+    const file = acceptedFiles[0]
+    setUploading(true)
+    const fileExt = file.name.split(".").pop()
+    const fileName = `${uuidv4()}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from("store-assets")
+      .upload(`categories/${fileName}`, file, { cacheControl: "3600", upsert: false })
+
+    if (uploadError) {
+      toast.error(`Échec: ${uploadError.message}`)
+      setUploading(false)
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from("store-assets")
+      .getPublicUrl(`categories/${fileName}`)
+    
+    setImageUrl(publicUrl)
+    setUploading(false)
+  }
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "image/*": [] },
+    maxFiles: 1
+  })
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name) return toast.error("Le nom est obligatoire")
+    
+    setLoading(true)
+    let res;
+    if (editId) {
+      res = await updateCategory({ id: editId, name, image_url: imageUrl })
+    } else {
+      res = await createCategory({ name, image_url: imageUrl })
+    }
+    setLoading(false)
+
+    if (res?.error) toast.error(res.error)
+    else {
+      toast.success("Catégorie enregistrée")
+      resetForm()
+    }
+  }
+
+  const handleDeleteCategory = async (id: string, count: number) => {
+    if (count > 0) return toast.error("Impossible de supprimer car elle contient des articles")
+    if (!confirm("Supprimer cette catégorie ?")) return
+    
+    setLoading(true)
+    const res = await deleteCategory(id)
+    setLoading(false)
+    if (res?.error) toast.error(res.error)
+    else toast.success("Catégorie supprimée")
+  }
+
+  const handleSaveModel = async (e: React.FormEvent, catId: string) => {
+    e.preventDefault()
+    if (!modelName) return toast.error("Le nom du modèle est obligatoire")
+    
+    setModelLoading(true)
+    const res = await createModel({ name: modelName, category_id: catId })
+    setModelLoading(false)
+
+    if (res?.error) toast.error(res.error)
+    else {
+      toast.success("Modèle ajouté")
+      setModelName("")
+      setModelOpen(null)
+    }
+  }
+
+  const handleDeleteModel = async (id: string) => {
+     if (!confirm("Supprimer ce modèle ?")) return
+     const res = await deleteModel(id)
+     if (res?.error) toast.error(res.error)
+     else toast.success("Modèle supprimé")
+  }
+
+  const toggleExpand = (id: string) => {
+    setExpandedCats(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  return (
+    <div className="bg-white border rounded-xl overflow-hidden flex flex-col w-full">
+      <div className="flex items-center justify-between p-4 border-b">
+         <h2 className="font-semibold text-lg">Catégories Existantes</h2>
+         <Dialog open={open} onOpenChange={(val) => { if(!val) resetForm(); else setOpen(true); }}>
+           <DialogTrigger asChild>
+             <Button size="sm"><Plus className="w-4 h-4 mr-2" /> Ajouter Catégorie</Button>
+           </DialogTrigger>
+           <DialogContent>
+             <DialogHeader>
+               <DialogTitle>{editId ? "Modifier" : "Nouvelle"} Catégorie</DialogTitle>
+             </DialogHeader>
+             <form onSubmit={handleSaveCategory} className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label>Nom de la catégorie</Label>
+                  <Input value={name} onChange={e => setName(e.target.value)} required placeholder="Ex: Montres, Parfums..." />
+                </div>
+                <div className="space-y-2">
+                  <Label>Image de Catégorie (Optionnelle mais recommandée)</Label>
+                  <div
+                    {...getRootProps()}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                      isDragActive ? "border-primary bg-primary/5" : "border-gray-200 hover:border-primary/50"
+                    }`}
+                  >
+                    <input {...getInputProps()} />
+                    {uploading ? (
+                      <div className="flex flex-col items-center justify-center p-4">   
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />       
+                      </div>
+                    ) : imageUrl ? (
+                       <div className="relative group rounded overflow-hidden aspect-square w-32 mx-auto bg-gray-50 border">
+                          <img src={imageUrl} alt="preview" className="w-full h-full object-contain mix-blend-multiply" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <Button type="button" variant="destructive" size="icon" onClick={(e) => { e.stopPropagation(); setImageUrl("") }}>
+                               <X className="w-4 h-4" />
+                             </Button>
+                          </div>
+                       </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-4">  
+                        <UploadCloud className="w-8 h-8 text-gray-400 mb-2" />
+                        <p className="text-sm font-medium">Glisser / Cliquer pour uploader (1 icône)</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="pt-4 flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={resetForm}>Annuler</Button>
+                  <Button type="submit" disabled={loading}>{loading ? "Enregistrement..." : "Enregistrer"}</Button>
+                </div>
+             </form>
+           </DialogContent>
+         </Dialog>
+      </div>
+
+      <div className="overflow-x-auto w-full">
+         <Table>
+           <TableHeader className="bg-gray-50">
+             <TableRow>
+               <TableHead className="w-[50px]"></TableHead>
+               <TableHead>Image / Nom</TableHead>
+               <TableHead className="text-center">Articles Visibles</TableHead>
+               <TableHead className="text-center">Modèles Inclus</TableHead>
+               <TableHead className="text-right">Actions</TableHead>
+             </TableRow>
+           </TableHeader>
+           <TableBody>
+             {categories.length === 0 && (
+               <TableRow><TableCell colSpan={5} className="text-center py-10 text-gray-500">Aucune catégorie trouvée.</TableCell></TableRow>
+             )}
+             {categories.map((cat) => (
+               <React.Fragment key={cat.id}>
+                 <TableRow className="hover:bg-gray-50">
+                   <TableCell>
+                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => toggleExpand(cat.id)}>
+                       {expandedCats[cat.id] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                     </Button>
+                   </TableCell>
+                   <TableCell>
+                      <div className="flex items-center gap-3">
+                         <div className="w-10 h-10 rounded-full border bg-white flex items-center justify-center overflow-hidden">
+                            {cat.image_url ? <img src={cat.image_url} alt="" className="w-full h-full object-contain p-1 mix-blend-multiply" /> : <PackageOpen className="w-5 h-5 text-gray-300" />}
+                         </div>
+                         <span className="font-bold text-gray-900">{cat.name}</span>
+                      </div>
+                   </TableCell>
+                   <TableCell className="text-center font-medium text-gray-600">{cat.articleCount}</TableCell>
+                   <TableCell className="text-center">
+                     <span className="inline-flex items-center justify-center bg-gray-100 px-2 py-1 rounded text-xs font-semibold">
+                       {cat.models?.length || 0} modèles
+                     </span>
+                   </TableCell>
+                   <TableCell className="text-right">
+                     <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="icon" onClick={() => openEdit(cat)} className="h-8 w-8 text-blue-600">
+                           <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="destructive" size="icon" onClick={() => handleDeleteCategory(cat.id, cat.articleCount)} className="h-8 w-8" disabled={cat.articleCount > 0}>
+                           <Trash2 className="w-4 h-4" />
+                        </Button>
+                     </div>
+                   </TableCell>
+                 </TableRow>
+                 
+                 {/* Models Sub-Table Expand */}
+                 {expandedCats[cat.id] && (
+                    <TableRow className="bg-gray-50/50">
+                      <TableCell></TableCell>
+                      <TableCell colSpan={4} className="py-4">
+                         <div className="pl-4 border-l-2 border-primary/20 space-y-4">
+                           <h4 className="text-sm font-semibold flex items-center justify-between">
+                             Modèles liés à {cat.name}
+                             <Dialog open={modelOpen === cat.id} onOpenChange={(val) => { if(!val) setModelOpen(null); else setModelOpen(cat.id); }}>
+                               <DialogTrigger asChild>
+                                 <Button variant="secondary" size="sm" className="h-7 text-xs"><Plus className="w-3 h-3 mr-1"/> Ajouter un Modèle</Button>
+                               </DialogTrigger>
+                               <DialogContent>
+                                 <DialogHeader><DialogTitle>Nouveau modèle pour {cat.name}</DialogTitle></DialogHeader>
+                                 <form onSubmit={(e) => handleSaveModel(e, cat.id)} className="space-y-4 pt-4">
+                                    <div className="space-y-2">
+                                      <Label>Nom du Modèle</Label>
+                                      <Input value={modelName} onChange={e => setModelName(e.target.value)} required placeholder="Ex: L1, Series 8..." />
+                                    </div>
+                                    <div className="pt-4 flex justify-end gap-2">
+                                      <Button type="submit" disabled={modelLoading}>{modelLoading ? "Enregistrement..." : "Enregistrer"}</Button>
+                                    </div>
+                                 </form>
+                               </DialogContent>
+                             </Dialog>
+                           </h4>
+                           
+                           {cat.models && cat.models.length > 0 ? (
+                             <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                               {cat.models.map((mod: any) => (
+                                 <li key={mod.id} className="flex flex-1 items-center justify-between bg-white border p-2 rounded-lg shadow-sm">
+                                    <span className="text-sm font-medium">{mod.name}</span>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDeleteModel(mod.id)}>
+                                       <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                 </li>
+                               ))}
+                             </ul>
+                           ) : (
+                             <span className="text-sm text-gray-500 italic block">Aucun modèle associé. Vous pouvez utiliser cette catégorie sans modèles ou en ajouter.</span>
+                           )}
+                         </div>
+                      </TableCell>
+                    </TableRow>
+                 )}
+               </React.Fragment>
+             ))}
+           </TableBody>
+         </Table>
+      </div>
+    </div>
+  )
+}

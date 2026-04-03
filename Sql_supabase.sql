@@ -211,14 +211,30 @@ CREATE TABLE public.store_settings (
  I N S E R T   I N T O   s t o r a g e . b u c k e t s   ( i d ,   n a m e ,   p u b l i c )   V A L U E S   ( ' a r t i c l e - p h o t o s ' ,   ' a r t i c l e - p h o t o s ' ,   t r u e )   O N   C O N F L I C T   D O   N O T H I N G ; 
  
  - -   A l l o w   p u b l i c   a c c e s s   t o   t h e   b u c k e t 
- C R E A T E   P O L I C Y   \  
- P u b l i c  
- A c c e s s \   O N   s t o r a g e . o b j e c t s   F O R   S E L E C T   U S I N G   ( b u c k e t _ i d   =   ' a r t i c l e - p h o t o s ' ) ; 
- C R E A T E   P O L I C Y   \ U p l o a d  
- A c c e s s \   O N   s t o r a g e . o b j e c t s   F O R   I N S E R T   W I T H   C H E C K   ( b u c k e t _ i d   =   ' a r t i c l e - p h o t o s ' ) ; 
- C R E A T E   P O L I C Y   \ U p d a t e  
- A c c e s s \   O N   s t o r a g e . o b j e c t s   F O R   U P D A T E   U S I N G   ( b u c k e t _ i d   =   ' a r t i c l e - p h o t o s ' ) ; 
- C R E A T E   P O L I C Y   \ D e l e t e  
- A c c e s s \   O N   s t o r a g e . o b j e c t s   F O R   D E L E T E   U S I N G   ( b u c k e t _ i d   =   ' a r t i c l e - p h o t o s ' ) ; 
-  
+ C R E A T E   P O L I C Y   \ 
  
+ P u b l i c 
+ 
+ A c c e s s \   O N   s t o r a g e . o b j e c t s   F O R   S E L E C T   U S I N G   ( b u c k e t _ i d   =   ' a r t i c l e - p h o t o s ' ) ; 
+ C R E A T E   P O L I C Y   \ U p l o a d 
+ 
+ A c c e s s \   O N   s t o r a g e . o b j e c t s   F O R   I N S E R T   W I T H   C H E C K   ( b u c k e t _ i d   =   ' a r t i c l e - p h o t o s ' ) ; 
+ C R E A T E   P O L I C Y   \ U p d a t e 
+ 
+ A c c e s s \   O N   s t o r a g e . o b j e c t s   F O R   U P D A T E   U S I N G   ( b u c k e t _ i d   =   ' a r t i c l e - p h o t o s ' ) ; 
+ C R E A T E   P O L I C Y   \ D e l e t e 
+ 
+ A c c e s s \   O N   s t o r a g e . o b j e c t s   F O R   D E L E T E   U S I N G   ( b u c k e t _ i d   =   ' a r t i c l e - p h o t o s ' ) ; 
+ 
+ 
+ 
+
+
+ALTER TABLE articles
+  ADD COLUMN is_featured boolean NOT NULL DEFAULT false;
+
+ALTER TABLE store_settings
+  ADD COLUMN hero_image_url text,
+  ADD COLUMN hero_subtitle text,
+  ADD COLUMN hero_cta_text text DEFAULT 'تسوقي الآن',
+  ADD COLUMN hero_cta_link text DEFAULT '/boutique';

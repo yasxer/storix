@@ -28,7 +28,10 @@ const productSchema = z.object({
   low_stock_threshold: z.coerce.number().int().min(0).default(5),
   barcode: z.string().optional(),
   is_published: z.boolean().default(true),
-  
+  is_featured: z.boolean().default(false),
+  is_on_sale: z.boolean().default(false),
+  sale_percentage: z.coerce.number().int().min(1).max(100).optional().nullable(),
+
   sizes: z.array(z.object({
     id: z.string(), // Temp ID for client-side
     size_label: z.string().min(1, "Size is required"),
@@ -69,6 +72,9 @@ export function ProductForm({ categories, models, initialData }: { categories: C
       low_stock_threshold: 5,
       barcode: "",
       is_published: true,
+      is_featured: false,
+      is_on_sale: false,
+      sale_percentage: null,
       sizes: [{ id: uuidv4(), size_label: "Standard", is_standard: true, price_override: null, colors: [{ id: uuidv4(), color_name: "Default", color_hex: "#000000" }] }]
     }
   })
@@ -165,6 +171,9 @@ export function ProductForm({ categories, models, initialData }: { categories: C
           low_stock_threshold: data.low_stock_threshold,
           barcode: data.barcode || null,
           is_published: data.is_published,
+          is_featured: data.is_featured,
+          is_on_sale: data.is_on_sale,
+          sale_percentage: data.is_on_sale ? data.sale_percentage || null : null,
           updated_at: new Date().toISOString()
         }).eq("id", articleId!);
         if (articleErr) throw articleErr || new Error("Failed to update article");
@@ -178,7 +187,10 @@ export function ProductForm({ categories, models, initialData }: { categories: C
           description: data.description || null,
           low_stock_threshold: data.low_stock_threshold,
           barcode: data.barcode || null,
-          is_published: data.is_published
+          is_published: data.is_published,
+          is_featured: data.is_featured,
+          is_on_sale: data.is_on_sale,
+          sale_percentage: data.is_on_sale ? data.sale_percentage || null : null,
         }).select().single();
         if (articleErr || !article) throw articleErr || new Error("Failed to insert article");
         articleId = article.id;
@@ -363,6 +375,45 @@ export function ProductForm({ categories, models, initialData }: { categories: C
             {form.watch("barcode") && (
               <div className="mt-2 p-4 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg flex justify-center">
                 <svg id="barcode-preview"></svg>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Storefront Settings */}
+      <div className="space-y-4 pt-4 border-t border-[var(--color-border)]">    
+        <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Storefront Options</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label className="flex items-center gap-3 p-3 border rounded-lg bg-white cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+            <input type="checkbox" {...form.register("is_published")} className="w-5 h-5 accent-[var(--color-primary)]" />
+            <div>
+              <p className="font-semibold text-sm">Visible publiquement (Published)</p>
+              <p className="text-xs text-[var(--color-text-muted)]">Afficher ce produit sur la boutique</p>
+            </div>
+          </label>
+          <label className="flex items-center gap-3 p-3 border rounded-lg bg-white cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+            <input type="checkbox" {...form.register("is_featured")} className="w-5 h-5 accent-[var(--color-primary)]" />
+            <div>
+              <p className="font-semibold text-sm">Mettre en avant (Featured)</p>
+              <p className="text-xs text-[var(--color-text-muted)]">Afficher sur la page d'accueil</p>
+            </div>
+          </label>
+          <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 border rounded-lg p-3 bg-[var(--color-surface)]">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" {...form.register("is_on_sale")} className="w-5 h-5 accent-[var(--color-primary)]" />
+              <div>
+                <p className="font-semibold text-sm">En solde (On Sale)</p>
+                <p className="text-xs text-[var(--color-text-muted)]">Activer la promotion</p>
+              </div>
+            </label>
+            {form.watch("is_on_sale") && (
+              <div>
+                <label className="block text-xs font-medium mb-1">Pourcentage de réduction (%)</label>
+                <div className="flex items-center gap-2">
+                   <Input type="number" min="1" max="100" {...form.register("sale_percentage")} className="bg-white w-full" placeholder="Ex: 20" />
+                   <span className="text-sm font-medium">%</span>
+                </div>
               </div>
             )}
           </div>

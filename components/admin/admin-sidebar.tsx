@@ -29,6 +29,7 @@ import { useState, useEffect } from "react"
 
 const sidebarLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/categories", label: "Categories", icon: Store },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/stock", label: "Stock", icon: Boxes },
   { href: "/admin/history", label: "History", icon: History },

@@ -8,18 +8,34 @@ export async function updateStoreSettings(data: {
   store_name: string,
   store_phone: string,
   store_address: string,
-  low_stock_threshold: number
+  low_stock_threshold: number,
+  hero_image_url?: string | null,
+  hero_image_url_2?: string | null,
+  hero_image_url_3?: string | null,
+  hero_image_url_4?: string | null,
+  hero_banner_text?: string | null,
+  hero_subtitle?: string | null,
+  hero_cta_text?: string | null,
+  hero_cta_link?: string | null
 }) {
   const supabase = await createClient() as any
 
-  // Ensure there's a row to update, the default is already there typically
+  // Ensure there's a row to update, the default is already there typically     
   const { error } = await supabase
     .from("store_settings")
-    .update({ 
+    .update({
       store_name: data.store_name,
       store_phone: data.store_phone,
       store_address: data.store_address,
       low_stock_threshold: data.low_stock_threshold,
+      hero_image_url: data.hero_image_url,
+      hero_image_url_2: data.hero_image_url_2,
+      hero_image_url_3: data.hero_image_url_3,
+      hero_image_url_4: data.hero_image_url_4,
+      hero_banner_text: data.hero_banner_text,
+      hero_subtitle: data.hero_subtitle,
+      hero_cta_text: data.hero_cta_text,
+      hero_cta_link: data.hero_cta_link,
       updated_at: new Date().toISOString()
     })
     .eq("id", data.id)
