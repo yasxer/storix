@@ -68,12 +68,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <main className="container mx-auto px-4 py-8 md:py-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold capitalize">{category.name}</h1>
+      <div className="mb-6 md:mb-8 text-center md:text-left">
+        <h1 className="text-2xl md:text-3xl font-black font-display uppercase inline-block relative">
+           {category.name}
+           <div className="h-0.5 w-[40%] bg-gradient-to-r from-rose-400 to-orange-400 mx-auto md:mx-0 md:w-full mt-1.5 rounded-full md:absolute md:-bottom-2 md:left-0 md:h-1"></div>
+        </h1>
       </div>
 
       {models && models.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
           {modelsWithCounts.map((model: any) => (
             <ModelCard
               key={model.id}
@@ -85,7 +88,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           ))}
         </div>
       ) : articles.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 lg:gap-8">
           {articles.map((article: any) => (
             <ProductCard key={article.id} article={article} />
           ))}

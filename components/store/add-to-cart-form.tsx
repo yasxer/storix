@@ -88,16 +88,16 @@ export function AddToCartForm({ article }: { article: any }) {
       {selectedSize?.colors && selectedSize.colors.length > 0 && (
          <div className="space-y-3">
            <h3 className="font-medium">Couleur: <span className="text-muted-foreground ml-1">{selectedColor?.color_name || ''}</span></h3>
-           <div className="flex flex-wrap gap-3">
+           <div className="flex flex-wrap gap-2.5">
              {selectedSize.colors.map((color: any) => (
                 <button
                   key={color.id}
                   onClick={() => setSelectedColor(color)}
                   disabled={color.quantity === 0}
                   className={`
-                    w-10 h-10 rounded-full border-2 transition-all p-1
+                    w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all p-0.5 md:p-1
                     ${color.quantity === 0 ? 'opacity-50 cursor-not-allowed hidden' : ''}
-                    ${selectedColor?.id === color.id ? 'border-primary scale-110 shadow-sm' : 'border-transparent hover:border-gray-300'}
+                    ${selectedColor?.id === color.id ? 'border-primary shadow-[0_0_10px_rgba(0,0,0,0.1)] scale-110' : 'border-transparent hover:border-gray-300'}
                   `}
                   title={color.color_name}
                 >
@@ -112,33 +112,35 @@ export function AddToCartForm({ article }: { article: any }) {
       )}
 
       {/* Quantity & Action */}
-      <div className="py-6 flex flex-col sm:flex-row gap-4">
-        {/* Qty selector */}
-        <div className="flex items-center justify-between border rounded-[2rem] p-2 h-14 bg-muted/20 w-32 shrink-0">
-          <button 
-             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-             disabled={quantity <= 1}
-             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors disabled:opacity-50"
-          >
-             <Minus className="w-4 h-4" />
-          </button>
-          <span className="font-semibold text-lg">{quantity}</span>
-          <button 
-             onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
-             disabled={quantity >= maxStock}
-             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors disabled:opacity-50"
-          >
-             <Plus className="w-4 h-4" />
-          </button>
-        </div>
+      <div className="pt-4 pb-8 flex flex-col gap-3">
+        {/* Qty & Add to cart row */}
+        <div className="flex items-center gap-3 w-full">
+          {/* Qty selector */}
+          <div className="flex items-center justify-between border-2 border-gray-100 rounded-full px-1.5 h-[52px] md:h-[56px] w-[110px] md:w-[130px] shrink-0 bg-white shadow-sm">
+            <button 
+               onClick={() => setQuantity(Math.max(1, quantity - 1))}
+               disabled={quantity <= 1}
+               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-30"
+            >
+               <Minus className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
+            </button>
+            <span className="font-bold text-base md:text-lg text-gray-900 w-8 text-center">{quantity}</span>
+            <button 
+               onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
+               disabled={quantity >= maxStock}
+               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-30"
+            >
+               <Plus className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
+            </button>
+          </div>
 
-        {/* Add to cart button */}
-        <Button 
-          size="lg"
-          onClick={handleAddToCart}
-          disabled={!isAvailable}
-          className="flex-1 h-14 rounded-[2rem] text-lg font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
-        >
+          {/* Add to cart button */}
+          <Button 
+            size="lg"
+            onClick={handleAddToCart}
+            disabled={!isAvailable}
+            className="flex-1 h-[52px] md:h-[56px] rounded-full text-[15px] md:text-lg font-bold shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:-translate-y-[1px] transition-all active:scale-[0.98]"
+          >
           {isAvailable ? (
             <>
               <ShoppingCart className="mr-2 w-5 h-5" />
@@ -148,7 +150,7 @@ export function AddToCartForm({ article }: { article: any }) {
             'Rupture de stock'
           )}
         </Button>
-      </div>
+        </div>
 
        {/* Small hint */}
        {isAvailable && maxStock <= 5 && (
@@ -157,6 +159,7 @@ export function AddToCartForm({ article }: { article: any }) {
            Plus que {maxStock} article(s) en stock !
          </p>
        )}
+      </div>
     </div>
   )
 }

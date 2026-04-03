@@ -46,23 +46,23 @@ export function ProductCard({ article }: { article: any }) {
         )}
 
         {photo ? (
-          <img src={photo} alt={article.title} className={`w-full h-full object-contain p-4 transition-transform duration-500 ${isSoldOut ? 'grayscale mix-blend-normal' : 'mix-blend-multiply group-hover:scale-105'}`} />
+          <img src={photo} alt={article.title} className={`w-full h-full object-contain p-3 md:p-4 transition-transform duration-500 ${isSoldOut ? 'grayscale mix-blend-normal' : 'mix-blend-multiply group-hover:scale-105'}`} />
         ) : (
-           <span className="text-4xl text-gray-300 font-bold opacity-30">{article.title.charAt(0)}</span>
+           <span className="text-3xl md:text-4xl text-gray-300 font-bold opacity-30">{article.title.charAt(0)}</span>
         )}
       </div>
 
-      <div className="p-4 pt-3">
-        <h3 className="font-semibold text-[15px] mb-2 text-gray-800 line-clamp-2 leading-snug" dir="auto">
+      <div className="p-3 md:p-4 pt-2 md:pt-3">
+        <h3 className="font-semibold text-[13px] md:text-[15px] mb-1.5 md:mb-2 text-gray-800 line-clamp-2 leading-snug" dir="auto">
           {article.title}
         </h3>
 
         <div className="flex items-center justify-between">
-          <div className="font-black text-lg text-gray-900">
+          <div className="font-black text-[15px] md:text-lg text-gray-900 tracking-tight">
             {article.is_on_sale ? (
-              <div className="flex items-center gap-2">
-                <span className="text-red-600">{Math.round(salePrice!)} DA</span>
-                <span className="text-xs text-gray-400 line-through font-medium">{displayPrice} DA</span>
+              <div className="flex items-center gap-1.5 md:gap-2">
+                <span className="text-red-500">{Math.round(salePrice!)} DA</span>
+                <span className="text-[10px] md:text-xs text-gray-400 line-through font-medium">{displayPrice} DA</span>
               </div>
             ) : (
               <span>{displayPrice} DA</span>

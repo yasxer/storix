@@ -38,37 +38,37 @@ export default async function ArticlePage({
 
   return (
     <main className="container mx-auto px-4 py-8 md:py-12">
-      <div className="mb-8 space-y-4">
-        <div className="flex items-center flex-wrap gap-2 text-sm text-muted-foreground">
-          <Link href="/" className="hover:text-foreground transition-colors">
+      <div className="mb-6 md:mb-8 space-y-4">
+        <div className="flex items-center flex-wrap gap-2 text-xs md:text-sm text-muted-foreground w-full">
+          <Link href="/" className="hover:text-foreground transition-colors shrink-0">
             Accueil
           </Link>
-          <ChevronRight className="h-4 w-4 shrink-0" />
-          <Link href={`/category/${article.category?.slug}`} className="hover:text-foreground transition-colors capitalize">
+          <ChevronRight className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
+          <Link href={`/category/${article.category?.slug}`} className="hover:text-foreground transition-colors capitalize shrink-0 truncate max-w-[100px] md:max-w-none">
             {article.category?.name}
           </Link>
           {article.model && (
             <>
-              <ChevronRight className="h-4 w-4 shrink-0" />
-              <Link href={`/category/${article.category?.slug}/${article.model_id}`} className="hover:text-foreground transition-colors capitalize">
+              <ChevronRight className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
+              <Link href={`/category/${article.category?.slug}/${article.model_id}`} className="hover:text-foreground transition-colors capitalize shrink-0 truncate max-w-[100px] md:max-w-none">
                 {article.model.name}
               </Link>
             </>
           )}
-          <ChevronRight className="h-4 w-4" />
-          <span className="text-foreground font-medium truncate max-w-[200px]">{article.name}</span>
+          <ChevronRight className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
+          <span className="text-foreground font-medium truncate max-w-[120px] sm:max-w-[180px] md:max-w-[250px]">{article.title}</span>
         </div>
       </div>
       
-      <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+      <div className="grid md:grid-cols-2 gap-4 md:gap-8 lg:gap-12">
         {/* Gallery */}
-        <div className="space-y-4">
-          <div className="aspect-[4/5] relative rounded-2xl overflow-hidden bg-muted">
+        <div className="space-y-3 md:space-y-4 -mx-4 md:mx-0 px-4 md:px-0">
+          <div className="aspect-[4/5] relative rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm flex items-center justify-center">
             {sortedPhotos[0] ? (
               <img 
                 src={sortedPhotos[0].photo_url} 
-                alt={article.name}
-                className="w-full h-full object-cover"
+                alt={article.title}
+                className="w-full h-full object-contain p-2"
               />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
@@ -77,13 +77,13 @@ export default async function ArticlePage({
             )}
           </div>
           {sortedPhotos.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2.5">
               {sortedPhotos.map((photo: any, idx: number) => (
-                 <div key={idx} className="aspect-square relative rounded-xl overflow-hidden bg-muted cursor-pointer hover:opacity-90">
+                 <div key={idx} className="aspect-square relative rounded-[10px] md:rounded-xl overflow-hidden bg-white border border-gray-100 cursor-pointer hover:border-black transition-colors shadow-sm flex items-center justify-center">
                     <img 
                       src={photo.photo_url} 
-                      alt={`${article.name} - ${idx}`}
-                      className="w-full h-full object-cover"
+                      alt={`${article.title} - ${idx}`}
+                      className="w-full h-full object-contain p-1"
                     />
                  </div>
               ))}
@@ -92,21 +92,21 @@ export default async function ArticlePage({
         </div>
         
         {/* Info & Add to Cart */}
-        <div>
-           <div className="mb-6">
-             <h1 className="text-3xl font-bold mb-2">{article.name}</h1>
-             <p className="text-2xl font-semibold mb-4">
+        <div className="px-1 md:px-0 mt-2 md:mt-2">
+           <div className="mb-6 md:mb-8">
+             <h1 className="text-2xl md:text-3xl font-black mb-2.5 text-gray-900 leading-tight tracking-tight break-words">{article.title}</h1>
+             <p className="text-xl md:text-2xl font-black mb-4 md:mb-6">
                {article.is_on_sale ? (
-                 <>
-                  <span className="text-red-500 mr-3">{(article.base_price * (1 - (article.sale_percentage||0)/100)).toFixed(0)} DZD</span>
-                  <span className="text-gray-400 line-through text-lg">{article.base_price} DZD</span>
-                 </>
+                 <span className="flex items-center flex-wrap gap-2">
+                  <span className="text-red-500">{(article.base_price * (1 - (article.sale_percentage||0)/100)).toFixed(0)} DA</span>
+                  <span className="text-gray-400 line-through text-sm md:text-lg font-medium">{article.base_price} DA</span>
+                 </span>
                ) : (
-                  <span>{article.base_price} DZD</span>
+                  <span>{article.base_price} DA</span>
                )}
              </p>
              {article.description && (
-                <p className="text-muted-foreground whitespace-pre-wrap">{article.description}</p>
+                <p className="text-gray-600 font-medium whitespace-pre-wrap text-[15px] leading-relaxed break-words break-all">{article.description}</p>
              )}
            </div>
            
