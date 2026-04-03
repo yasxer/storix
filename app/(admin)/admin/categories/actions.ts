@@ -68,14 +68,28 @@ export async function deleteCategory(id: string) {
   return { success: true }
 }
 
-export async function createModel(data: { name: string, category_id: string }) {
+export async function createModel(data: { name: string, category_id: string, photo_url?: string }) {
   const supabase = (await createClient()) as any
   const { error } = await supabase.from("models").insert({
     name: data.name,
-    category_id: data.category_id
+    category_id: data.category_id,
+    photo_url: data.photo_url || null
   })
   if (error) return { error: error.message }
   revalidatePath("/admin/categories")
+  revalidatePath(`/admin/categories/${data.category_id}`)
+  return { success: true }
+}
+
+export async function updateModel(data: { id: string, name: string, photo_url?: string, category_id: string }) {
+  const supabase = (await createClient()) as any
+  const { error } = await supabase.from("models").update({
+    name: data.name,
+    photo_url: data.photo_url
+  }).eq("id", data.id)
+  if (error) return { error: error.message }
+  revalidatePath("/admin/categories")
+  revalidatePath(`/admin/categories/${data.category_id}`)
   return { success: true }
 }
 

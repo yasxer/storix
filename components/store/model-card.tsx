@@ -7,6 +7,7 @@ interface ModelCardProps {
   model: {
     id: string
     name: string
+    photo_url?: string | null
   }
   categorySlug: string
   categoryImage?: string | null
@@ -20,12 +21,17 @@ export function ModelCard({ model, categorySlug, categoryImage, articleCount }: 
     <Link href={modelUrl}>
       <Card className="group overflow-hidden transition-all hover:shadow-md cursor-pointer border-transparent shadow-sm">
         <div className="aspect-square bg-muted/30 relative overflow-hidden flex items-center justify-center">
-          {categoryImage ? (
-            <Image
+          {model.photo_url ? (
+            <img
+              src={model.photo_url}
+              alt={model.name}
+              className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 mix-blend-multiply"
+            />
+          ) : categoryImage ? (
+            <img
               src={categoryImage}
               alt={model.name}
-              fill
-              className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
             <ImageIcon className="h-10 w-10 text-muted-foreground/30" />

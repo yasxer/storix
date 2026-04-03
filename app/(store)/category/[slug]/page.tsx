@@ -22,7 +22,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   // 2. See if there are models
   const { data: models } = await supabase
     .from("models")
-    .select("id, name")
+    .select("id, name, photo_url")
     .eq("category_id", category.id)
     .order("name", { ascending: true })
 

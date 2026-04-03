@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { v4 as uuidv4 } from "uuid"
+import Link from "next/link"
 
 import {
   Table,
@@ -25,19 +26,11 @@ import { createCategory, updateCategory, deleteCategory, createModel, deleteMode
 
 export function CategoriesManager({ categories }: { categories: any[] }) {
   const [open, setOpen] = useState(false)
-  const [modelOpen, setModelOpen] = useState<string | null>(null)
-  
   const [editId, setEditId] = useState<string | null>(null)
   const [name, setName] = useState("")
   const [imageUrl, setImageUrl] = useState("")
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
-
-  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({})
-
-  // Model form
-  const [modelName, setModelName] = useState("")
-  const [modelLoading, setModelLoading] = useState(false)
 
   const supabase = createClient()
 
@@ -117,31 +110,11 @@ export function CategoriesManager({ categories }: { categories: any[] }) {
     else toast.success("Catégorie supprimée")
   }
 
-  const handleSaveModel = async (e: React.FormEvent, catId: string) => {
-    e.preventDefault()
-    if (!modelName) return toast.error("Le nom du modèle est obligatoire")
-    
-    setModelLoading(true)
-    const res = await createModel({ name: modelName, category_id: catId })
-    setModelLoading(false)
-
-    if (res?.error) toast.error(res.error)
-    else {
-      toast.success("Modèle ajouté")
-      setModelName("")
-      setModelOpen(null)
-    }
-  }
-
   const handleDeleteModel = async (id: string) => {
      if (!confirm("Supprimer ce modèle ?")) return
      const res = await deleteModel(id)
      if (res?.error) toast.error(res.error)
      else toast.success("Modèle supprimé")
-  }
-
-  const toggleExpand = (id: string) => {
-    setExpandedCats(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
   return (
@@ -207,7 +180,7 @@ export function CategoriesManager({ categories }: { categories: any[] }) {
                <TableHead className="w-[50px]"></TableHead>
                <TableHead>Image / Nom</TableHead>
                <TableHead className="text-center">Articles Visibles</TableHead>
-               <TableHead className="text-center">Modèles Inclus</TableHead>
+               <TableHead className="text-center">Modèles</TableHead>
                <TableHead className="text-right">Actions</TableHead>
              </TableRow>
            </TableHeader>
@@ -219,9 +192,11 @@ export function CategoriesManager({ categories }: { categories: any[] }) {
                <React.Fragment key={cat.id}>
                  <TableRow className="hover:bg-gray-50">
                    <TableCell>
-                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => toggleExpand(cat.id)}>
-                       {expandedCats[cat.id] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                     </Button>
+                      <Link href={`/admin/categories/${cat.id}`}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                          <ChevronRight className="w-4 h-4 text-gray-500" />
+                        </Button>
+                      </Link>
                    </TableCell>
                    <TableCell>
                       <div className="flex items-center gap-3">
@@ -239,6 +214,11 @@ export function CategoriesManager({ categories }: { categories: any[] }) {
                    </TableCell>
                    <TableCell className="text-right">
                      <div className="flex items-center justify-end gap-2">
+                        <Link href={`/admin/categories/${cat.id}`}>
+                           <Button variant="secondary" size="sm" className="hidden sm:flex text-xs h-8">
+                             Gérer les Modèles
+                           </Button>
+                        </Link>
                         <Button variant="outline" size="icon" onClick={() => openEdit(cat)} className="h-8 w-8 text-blue-600">
                            <Edit className="w-4 h-4" />
                         </Button>
@@ -249,52 +229,7 @@ export function CategoriesManager({ categories }: { categories: any[] }) {
                    </TableCell>
                  </TableRow>
                  
-                 {/* Models Sub-Table Expand */}
-                 {expandedCats[cat.id] && (
-                    <TableRow className="bg-gray-50/50">
-                      <TableCell></TableCell>
-                      <TableCell colSpan={4} className="py-4">
-                         <div className="pl-4 border-l-2 border-primary/20 space-y-4">
-                           <h4 className="text-sm font-semibold flex items-center justify-between">
-                             Modèles liés à {cat.name}
-                             <Dialog open={modelOpen === cat.id} onOpenChange={(val) => { if(!val) setModelOpen(null); else setModelOpen(cat.id); }}>
-                               <DialogTrigger asChild>
-                                 <Button variant="secondary" size="sm" className="h-7 text-xs"><Plus className="w-3 h-3 mr-1"/> Ajouter un Modèle</Button>
-                               </DialogTrigger>
-                               <DialogContent>
-                                 <DialogHeader><DialogTitle>Nouveau modèle pour {cat.name}</DialogTitle></DialogHeader>
-                                 <form onSubmit={(e) => handleSaveModel(e, cat.id)} className="space-y-4 pt-4">
-                                    <div className="space-y-2">
-                                      <Label>Nom du Modèle</Label>
-                                      <Input value={modelName} onChange={e => setModelName(e.target.value)} required placeholder="Ex: L1, Series 8..." />
-                                    </div>
-                                    <div className="pt-4 flex justify-end gap-2">
-                                      <Button type="submit" disabled={modelLoading}>{modelLoading ? "Enregistrement..." : "Enregistrer"}</Button>
-                                    </div>
-                                 </form>
-                               </DialogContent>
-                             </Dialog>
-                           </h4>
-                           
-                           {cat.models && cat.models.length > 0 ? (
-                             <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                               {cat.models.map((mod: any) => (
-                                 <li key={mod.id} className="flex flex-1 items-center justify-between bg-white border p-2 rounded-lg shadow-sm">
-                                    <span className="text-sm font-medium">{mod.name}</span>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDeleteModel(mod.id)}>
-                                       <Trash2 className="w-3 h-3" />
-                                    </Button>
-                                 </li>
-                               ))}
-                             </ul>
-                           ) : (
-                             <span className="text-sm text-gray-500 italic block">Aucun modèle associé. Vous pouvez utiliser cette catégorie sans modèles ou en ajouter.</span>
-                           )}
-                         </div>
-                      </TableCell>
-                    </TableRow>
-                 )}
-               </React.Fragment>
+                </React.Fragment>
              ))}
            </TableBody>
          </Table>

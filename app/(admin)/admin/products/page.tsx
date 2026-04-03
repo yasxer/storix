@@ -13,6 +13,7 @@ export default async function ProductsPage({
 }) {
   const resolvedParams = await searchParams
   const query = typeof resolvedParams.q === "string" ? resolvedParams.q : ""
+  const modelId = typeof resolvedParams.model_id === "string" ? resolvedParams.model_id : ""
 
   const supabase = await createClient()
 
@@ -28,6 +29,10 @@ export default async function ProductsPage({
 
   if (query) {
     articlesQuery = articlesQuery.ilike("title", `%${query}%`)
+  }
+
+  if (modelId) {
+    articlesQuery = articlesQuery.eq("model_id", modelId)
   }
 
   const { data: articles } = await articlesQuery
