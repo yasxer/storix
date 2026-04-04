@@ -87,43 +87,43 @@ export function CheckoutForm({ wilayas }: { wilayas: any[] }) {
   }
 
   return (
-    <div className="grid lg:grid-cols-2 gap-12 items-start">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 bg-white p-6 rounded-2xl border shadow-sm">
-        
+    <div className="w-full">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 bg-transparent w-full">
+
         {/* Contact Info */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">Vos coordonnées</h2>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-6">
+          <h2 className="text-xl font-bold text-slate-800">Vos coordonnées</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
-              <Label htmlFor="client_name">Nom *</Label>
-              <Input id="client_name" {...register("client_name")} placeholder="Votre nom" />
-              {errors.client_name && <p className="text-sm text-red-500">{String(errors.client_name.message)}</p>}
+              <Label htmlFor="client_name" className="text-slate-700 font-semibold cursor-pointer">Nom *</Label>
+              <Input id="client_name" {...register("client_name")} placeholder="Votre nom" className="h-12 rounded-lg border-slate-300 focus-visible:ring-1 focus-visible:ring-slate-900 focus-visible:ring-offset-0 bg-white" />
+              {errors.client_name && <p className="text-sm text-rose-500 font-medium">{String(errors.client_name.message)}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="client_lastname">Prénom *</Label>
-              <Input id="client_lastname" {...register("client_lastname")} placeholder="Votre prénom" />
-              {errors.client_lastname && <p className="text-sm text-red-500">{String(errors.client_lastname.message)}</p>}
+              <Label htmlFor="client_lastname" className="text-slate-700 font-semibold cursor-pointer">Prénom *</Label>
+              <Input id="client_lastname" {...register("client_lastname")} placeholder="Votre prénom" className="h-12 rounded-lg border-slate-300 focus-visible:ring-1 focus-visible:ring-slate-900 focus-visible:ring-offset-0 bg-white" />
+              {errors.client_lastname && <p className="text-sm text-rose-500 font-medium">{String(errors.client_lastname.message)}</p>}
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Téléphone *</Label>
-            <Input id="phone" type="tel" {...register("phone")} placeholder="ex: 0550... / 0660..." />
-            {errors.phone && <p className="text-sm text-red-500">{String(errors.phone.message)}</p>}
+            <Label htmlFor="phone" className="text-slate-700 font-semibold cursor-pointer">Téléphone *</Label>
+            <Input id="phone" type="tel" {...register("phone")} placeholder="ex: 0550... / 0660..." className="h-12 rounded-lg border-slate-300 focus-visible:ring-1 focus-visible:ring-slate-900 focus-visible:ring-offset-0 bg-white text-lg tracking-wide" />        
+            {errors.phone && <p className="text-sm text-rose-500 font-medium">{String(errors.phone.message)}</p>}
           </div>
         </div>
 
-        <div className="my-6 h-px w-full bg-border" />
-
+        <div className="my-8 h-px w-full bg-slate-200" />
+        
         {/* Delivery Info */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">Livraison</h2>
-          
+        <div className="space-y-6">
+          <h2 className="text-xl font-bold text-slate-800">Livraison</h2>       
+
           <div className="space-y-2">
-            <Label htmlFor="wilaya">Wilaya *</Label>
+            <Label htmlFor="wilaya" className="text-slate-700 font-semibold cursor-pointer">Wilaya *</Label>
             <select
               id="wilaya"
               {...register("wilaya")}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full h-12 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white px-4 py-2 text-sm md:text-base outline-none focus:ring-2 focus:ring-slate-900 transition-all disabled:opacity-50 appearance-none font-medium text-slate-700"
             >
               <option value="">Sélectionnez votre wilaya</option>
               {wilayas.map((w: any) => (
@@ -132,124 +132,109 @@ export function CheckoutForm({ wilayas }: { wilayas: any[] }) {
                 </option>
               ))}
             </select>
-            {errors.wilaya && <p className="text-sm text-red-500">{String(errors.wilaya.message)}</p>}
+            {errors.wilaya && <p className="text-sm text-rose-500 font-medium">{String(errors.wilaya.message)}</p>}
           </div>
 
-          <div className="space-y-3 pt-2">
-            <Label>Type de livraison *</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <label className="flex items-start gap-3 p-4 border rounded-xl cursor-pointer hover:bg-muted/30 transition-colors [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5">
-                <input 
-                  type="radio" 
-                  value="domicile" 
-                  {...register("delivery_type")} 
-                  className="mt-1" 
-                />
+          <div className="space-y-3 pt-4">
+            <Label className="text-slate-600 font-semibold mb-2 block">Type de livraison *</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="flex items-start gap-4 p-5 border-2 border-slate-100 rounded-2xl cursor-pointer hover:border-slate-300 transition-all [&:has(:checked)]:border-slate-900 [&:has(:checked)]:bg-slate-50 group">
+                <div className="mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border-2 border-slate-300 group-has-[:checked]:border-slate-900"> 
+                  <input 
+                    type="radio" 
+                    value="domicile" 
+                    {...register("delivery_type")} 
+                    className="opacity-0 absolute" 
+                  />
+                  <div className="w-2.5 h-2.5 rounded-full bg-slate-900 opacity-0 group-has-[:checked]:opacity-100 transition-opacity"></div>
+                </div>
                 <div>
-                  <div className="font-semibold mb-1">À Domicile</div>
-                  <div className="text-sm text-muted-foreground">Livraison jusqu'à votre porte.</div>
-                  {formWilaya && <div className="text-sm font-bold text-primary mt-2">+{wilayas.find((w:any) => w.wilaya_name === formWilaya)?.fee_domicile || 0} DZD</div>}
+                  <div className="font-bold text-slate-900 mb-1">À Domicile</div>
+                  <div className="text-sm text-slate-500 leading-snug">Livraison jusqu'à votre porte ou lieu de travail.</div>
+                  {formWilaya && <div className="text-sm font-black text-slate-800 mt-2 bg-slate-100 inline-block px-2 py-1 rounded-md">+{wilayas.find((w:any) => w.wilaya_name === formWilaya)?.fee_domicile || 0} DA</div>}
                 </div>
               </label>
-              
-              <label className="flex items-start gap-3 p-4 border rounded-xl cursor-pointer hover:bg-muted/30 transition-colors [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5">
-                <input 
-                  type="radio" 
-                  value="bureau" 
-                  {...register("delivery_type")} 
-                  className="mt-1" 
-                />
+
+              <label className="flex items-start gap-4 p-5 border-2 border-slate-100 rounded-2xl cursor-pointer hover:border-slate-300 transition-all [&:has(:checked)]:border-slate-900 [&:has(:checked)]:bg-slate-50 group">
+                <div className="mt-0.5 flex items-center justify-center w-5 h-5 rounded-full border-2 border-slate-300 group-has-[:checked]:border-slate-900"> 
+                  <input 
+                    type="radio" 
+                    value="bureau" 
+                    {...register("delivery_type")} 
+                    className="opacity-0 absolute" 
+                  />
+                  <div className="w-2.5 h-2.5 rounded-full bg-slate-900 opacity-0 group-has-[:checked]:opacity-100 transition-opacity"></div>
+                </div>
                 <div>
-                  <div className="font-semibold mb-1">Point Relais</div>
-                  <div className="text-sm text-muted-foreground">Récupération au bureau du livreur.</div>
-                  {formWilaya && <div className="text-sm font-bold text-primary mt-2">+{wilayas.find((w:any) => w.wilaya_name === formWilaya)?.fee_bureau || 0} DZD</div>}
+                  <div className="font-bold text-slate-900 mb-1">Point Relais (StopDesk)</div>
+                  <div className="text-sm text-slate-500 leading-snug">Récupération au bureau du transporteur dans votre wilaya.</div>
+                  {formWilaya && <div className="text-sm font-black text-slate-800 mt-2 bg-slate-100 inline-block px-2 py-1 rounded-md">+{wilayas.find((w:any) => w.wilaya_name === formWilaya)?.fee_bureau || 0} DA</div>}
                 </div>
               </label>
             </div>
-            {errors.delivery_type && <p className="text-sm text-red-500">{String(errors.delivery_type.message)}</p>}
+            {errors.delivery_type && <p className="text-sm text-rose-500 font-medium">{String(errors.delivery_type.message)}</p>}
           </div>
 
-          <div className="space-y-2 pt-2">
-            <Label htmlFor="address">Adresse Détaillée *</Label>
+          <div className="space-y-2.5 pt-4">
+            <Label htmlFor="address" className="text-slate-600 font-semibold cursor-pointer">Adresse Détaillée *</Label>
             <textarea
               id="address"
-              className="resize-none w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="resize-none w-full h-24 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white px-4 py-3 text-sm md:text-base outline-none focus:ring-2 focus:ring-slate-900 transition-all disabled:opacity-50 placeholder:text-slate-400"
               {...register("address")}
               placeholder="Indiquez l'adresse exacte (Cité, rue, bâtiment, étage...)"
-              rows={3}
             />
-            {errors.address && <p className="text-sm text-red-500">{String(errors.address.message)}</p>}
+            {errors.address && <p className="text-sm text-rose-500 font-medium">{String(errors.address.message)}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes supplémentaires (Optionnel)</Label>
+          <div className="space-y-2.5">
+            <Label htmlFor="notes" className="text-slate-600 font-semibold cursor-pointer">Notes supplémentaires (Optionnel)</Label>
             <textarea
               id="notes"
-              className="resize-none w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="resize-none w-full h-20 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white px-4 py-3 text-sm md:text-base outline-none focus:ring-2 focus:ring-slate-900 transition-all disabled:opacity-50 placeholder:text-slate-400"
               {...register("notes")}
               placeholder="Information utile pour le livreur ?"
-              rows={2}
             />
+          </div>
+        </div>
+
+        <div className="my-8 h-px w-full bg-slate-100" />
+
+        {/* Totals Section */}
+        <div className="bg-slate-50/50 p-6 rounded-[2xl] border border-slate-100">
+          <div className="space-y-4 mb-6">
+            <div className="flex justify-between text-slate-500 font-medium text-base">
+              <span>Sous-total:</span>
+              <span>{subtotal.toFixed(0)} DA</span>
+            </div>
+            <div className="flex justify-between text-slate-500 font-medium text-base">
+              <span>Livraison ({deliveryType}):</span>
+              <span>{formWilaya ? `+${deliveryFee} DA` : 'À calculer'}</span>    
+            </div>
+          </div>
+
+          <div className="my-6 h-px w-full bg-slate-200" />
+
+          <div className="flex justify-between font-black text-2xl text-slate-900 items-end mb-6">
+            <span>Total à payer:</span>
+            <span className="text-3xl text-slate-900 block mt-1">{total.toFixed(0)} DA</span>
+          </div>
+
+          <div className="bg-emerald-50 rounded-xl p-4 flex items-center justify-center gap-3 text-emerald-700 font-semibold text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+            Paiement à la livraison
           </div>
         </div>
 
         {error && (
-          <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium">
+          <div className="p-4 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-sm font-bold flex items-center gap-2">
             Erreur: {error}
           </div>
         )}
 
-        <Button type="submit" size="lg" disabled={loading || !formWilaya} className="w-full h-14 rounded-xl text-lg font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
+        <Button type="submit" size="lg" disabled={loading} className="w-full h-14 rounded-xl text-lg font-bold bg-slate-900 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all mt-8">
           {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Confirmer ma commande"}
         </Button>
       </form>
-
-      {/* Recap */}
-      <div className="bg-muted/30 p-6 rounded-2xl border sticky top-24">
-        <h2 className="text-xl font-bold mb-6">Résumé de la commande</h2>
-        
-        <div className="space-y-4 mb-6">
-          {items.map((item) => (
-             <div key={`${item.article_id}-${item.size_id}-${item.color_id}`} className="flex items-start gap-4">
-               <div className="flex-1">
-                 <div className="font-semibold text-sm line-clamp-1">{item.title}</div>
-                 <div className="text-xs text-muted-foreground mt-0.5">
-                   {item.size_label} | {item.color_name} x {item.quantity}
-                 </div>
-               </div>
-               <div className="font-semibold text-sm whitespace-nowrap">
-                 {(item.unit_price * item.quantity).toFixed(0)} DZD
-               </div>
-             </div>
-          ))}
-        </div>
-
-        <div className="my-4 h-px w-full bg-border" />
-
-        <div className="space-y-3 mb-6">
-          <div className="flex justify-between text-muted-foreground text-sm">
-            <span>Sous-total:</span>
-            <span>{subtotal.toFixed(0)} DZD</span>
-          </div>
-          <div className="flex justify-between text-muted-foreground text-sm">
-            <span>Livraison ({deliveryType}):</span>
-            <span>{formWilaya ? `+${deliveryFee} DZD` : 'À calculer'}</span>
-          </div>
-        </div>
-        
-        <div className="my-4 h-px w-full bg-border" />
-        
-        <div className="flex justify-between font-bold text-2xl">
-          <span>Total à payer:</span>
-          <span className="text-primary">{total.toFixed(0)} DZD</span>
-        </div>
-        
-        <p className="text-xs text-center text-muted-foreground mt-6 flex items-center justify-center gap-1.5 flex-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-          Le paiement s'effectuera à la livraison (Cash on Delivery)
-        </p>
-      </div>
-
     </div>
   )
 }
