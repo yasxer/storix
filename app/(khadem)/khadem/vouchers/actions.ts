@@ -35,7 +35,7 @@ export async function createPurchaseVoucher(data: {
 
   if (voucherError) return { error: voucherError.message }
 
-  // 2. Insert items and Update stock quantities
+  // 2. Insert items
   for (const item of data.items) {
     // Insert item
     await adminSupabase.from("purchase_voucher_items").insert({
@@ -48,20 +48,8 @@ export async function createPurchaseVoucher(data: {
       sale_price: item.sale_price
     })
 
-    // Auto-update standard stock
-    // Since we need to incrementally add to the existing quantity we fetch first then update
-    const { data: colorData } = await adminSupabase
-      .from("article_size_colors")
-      .select("quantity")
-      .eq("id", item.color_id)
-      .single()
-
-    if (colorData) {
-      await adminSupabase
-        .from("article_size_colors")
-        .update({ quantity: colorData.quantity + item.quantity })
-        .eq("id", item.color_id)
-    }
+    // Note: Stock quantity is managed automatically by Supabase DB Trigger
+    // So we don't update `article_size_colors.quantity` here.
 
     // Optionally update 'base_price' in articles if you want sale_price to overrule the product price
     await adminSupabase
@@ -89,23 +77,8 @@ export async function deletePurchaseVoucher(id: string) {
     .select("*")
     .eq("voucher_id", id)
 
-  // Revert Stock
-  if (items) {
-    for (const item of items) {
-      const { data: colorData } = await adminSupabase
-        .from("article_size_colors")
-        .select("quantity")
-        .eq("id", item.color_id)
-        .single()
-        
-      if (colorData) {
-        await adminSupabase
-          .from("article_size_colors")
-          .update({ quantity: Math.max(0, colorData.quantity - item.quantity) }) // Safely deduct
-          .eq("id", item.color_id)
-      }
-    }
-  }
+  // Note: Stock quantity revert is managed automatically by Supabase DB Trigger
+  // So we don't decrement `article_size_colors.quantity` here.
 
   // Delete elements
   await adminSupabase.from("purchase_voucher_items").delete().eq("voucher_id", id)
@@ -137,30 +110,13 @@ export async function updatePurchaseVoucher(id: string, data: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Unauthorized" }
 
-  // We are going to revert old stock, delete old items, then insert new items & add new stock.
-  // 1. Fetch old items
-  const { data: oldItems } = await adminSupabase
-    .from("purchase_voucher_items")
-    .select("*")
-    .eq("voucher_id", id)
-
-  // 2. Revert Old Stock
-  if (oldItems) {
-    for (const item of oldItems) {
-      const { data: colorData } = await adminSupabase.from("article_size_colors").select("quantity").eq("id", item.color_id).single()
-      if (colorData) {
-        await adminSupabase.from("article_size_colors").update({ quantity: Math.max(0, colorData.quantity - item.quantity) }).eq("id", item.color_id)
-      }
-    }
-  }
-
-  // 3. Delete Old Items
+  // 1. Delete Old Items (Stock reverting is handled by DB Trigger)
   await adminSupabase.from("purchase_voucher_items").delete().eq("voucher_id", id)
 
-  // 4. Update Voucher Notes
+  // 2. Update Voucher Notes
   await adminSupabase.from("purchase_vouchers").update({ notes: data.notes }).eq("id", id)
 
-  // 5. Insert New Items & Add Stock
+  // 3. Insert New Items (Stock adding is handled by DB Trigger)
   for (const item of data.items) {
     await adminSupabase.from("purchase_voucher_items").insert({
       voucher_id: id,
@@ -172,11 +128,7 @@ export async function updatePurchaseVoucher(id: string, data: {
       sale_price: item.sale_price
     })
 
-    const { data: colorData } = await adminSupabase.from("article_size_colors").select("quantity").eq("id", item.color_id).single()
-    if (colorData) {
-      await adminSupabase.from("article_size_colors").update({ quantity: colorData.quantity + item.quantity }).eq("id", item.color_id)
-    }
-
+    // Optionally update 'base_price' in articles
     await adminSupabase.from("articles").update({ base_price: item.sale_price }).eq("id", item.article_id)
   }
 

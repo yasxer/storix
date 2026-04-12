@@ -34,8 +34,7 @@ const sidebarLinks = [
   { href: "/admin/stock", label: "Stock", icon: Boxes },
   { href: "/admin/history", label: "History", icon: History },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
-  { href: "/admin/employees", label: "Employees", icon: Users },
-  { href: "/admin/vouchers", label: "Vouchers", icon: Receipt },
+  { href: "/admin/employees", label: "Employees", icon: Users },    { href: "/admin/suppliers", label: "Fournisseurs", icon: Users },  { href: "/admin/vouchers", label: "Vouchers", icon: Receipt },
   { href: "/admin/reports", label: "Reports", icon: BarChart2 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ]

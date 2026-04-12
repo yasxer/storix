@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 export async function createPurchaseVoucher(data: {
+  supplier_id: string,
+  payment_amount?: number,
   notes: string,
   items: {
     article_id: string,
@@ -28,6 +30,7 @@ export async function createPurchaseVoucher(data: {
     .from("purchase_vouchers")
     .insert({
       created_by: user.id,
+      supplier_id: data.supplier_id,
       notes: data.notes || null
     })
     .select()
@@ -35,7 +38,7 @@ export async function createPurchaseVoucher(data: {
 
   if (voucherError) return { error: voucherError.message }
 
-  // 2. Insert items and Update stock quantities
+  // 2. Insert items
   for (const item of data.items) {
     // Insert item
     await adminSupabase.from("purchase_voucher_items").insert({
@@ -48,26 +51,22 @@ export async function createPurchaseVoucher(data: {
       sale_price: item.sale_price
     })
 
-    // Auto-update standard stock
-    // Since we need to incrementally add to the existing quantity we fetch first then update
-    const { data: colorData } = await adminSupabase
-      .from("article_size_colors")
-      .select("quantity")
-      .eq("id", item.color_id)
-      .single()
-
-    if (colorData) {
-      await adminSupabase
-        .from("article_size_colors")
-        .update({ quantity: colorData.quantity + item.quantity })
-        .eq("id", item.color_id)
-    }
-
-    // Optionally update 'base_price' in articles if you want sale_price to overrule the product price
+    // Optionally update 'base_price' in articles
     await adminSupabase
       .from("articles")
       .update({ base_price: item.sale_price })
       .eq("id", item.article_id)
+  }
+
+  // 3. Create Verification Payment (if any)
+  if (data.payment_amount && data.payment_amount > 0) {
+    await adminSupabase.from("supplier_payments").insert({
+      supplier_id: data.supplier_id,
+      voucher_id: voucher.id,
+      amount: data.payment_amount,
+      notes: "Versement lié au Bon d'Achat",
+      created_by: user.id
+    })
   }
 
   revalidatePath("/admin/vouchers")
@@ -89,23 +88,8 @@ export async function deletePurchaseVoucher(id: string) {
     .select("*")
     .eq("voucher_id", id)
 
-  // Revert Stock
-  if (items) {
-    for (const item of items) {
-      const { data: colorData } = await adminSupabase
-        .from("article_size_colors")
-        .select("quantity")
-        .eq("id", item.color_id)
-        .single()
-        
-      if (colorData) {
-        await adminSupabase
-          .from("article_size_colors")
-          .update({ quantity: Math.max(0, colorData.quantity - item.quantity) }) // Safely deduct
-          .eq("id", item.color_id)
-      }
-    }
-  }
+  // Note: Stock quantity revert is managed automatically by Supabase DB Trigger
+  // So we don't decrement `article_size_colors.quantity` here.
 
   // Delete elements
   await adminSupabase.from("purchase_voucher_items").delete().eq("voucher_id", id)
@@ -121,6 +105,8 @@ export async function deletePurchaseVoucher(id: string) {
 }
 
 export async function updatePurchaseVoucher(id: string, data: {
+  supplier_id: string,
+  payment_amount?: number,
   notes: string,
   items: {
     article_id: string,
@@ -137,30 +123,16 @@ export async function updatePurchaseVoucher(id: string, data: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: "Unauthorized" }
 
-  // We are going to revert old stock, delete old items, then insert new items & add new stock.
-  // 1. Fetch old items
-  const { data: oldItems } = await adminSupabase
-    .from("purchase_voucher_items")
-    .select("*")
-    .eq("voucher_id", id)
-
-  // 2. Revert Old Stock
-  if (oldItems) {
-    for (const item of oldItems) {
-      const { data: colorData } = await adminSupabase.from("article_size_colors").select("quantity").eq("id", item.color_id).single()
-      if (colorData) {
-        await adminSupabase.from("article_size_colors").update({ quantity: Math.max(0, colorData.quantity - item.quantity) }).eq("id", item.color_id)
-      }
-    }
-  }
-
-  // 3. Delete Old Items
+  // 1. Delete Old Items (Stock reverting is handled by DB Trigger)
   await adminSupabase.from("purchase_voucher_items").delete().eq("voucher_id", id)
 
-  // 4. Update Voucher Notes
-  await adminSupabase.from("purchase_vouchers").update({ notes: data.notes }).eq("id", id)
+  // 2. Update Voucher Notes & Supplier
+  await adminSupabase.from("purchase_vouchers").update({ 
+    notes: data.notes,
+    supplier_id: data.supplier_id 
+  }).eq("id", id)
 
-  // 5. Insert New Items & Add Stock
+  // 3. Insert New Items (Stock adding is handled by DB Trigger)
   for (const item of data.items) {
     await adminSupabase.from("purchase_voucher_items").insert({
       voucher_id: id,
@@ -172,13 +144,13 @@ export async function updatePurchaseVoucher(id: string, data: {
       sale_price: item.sale_price
     })
 
-    const { data: colorData } = await adminSupabase.from("article_size_colors").select("quantity").eq("id", item.color_id).single()
-    if (colorData) {
-      await adminSupabase.from("article_size_colors").update({ quantity: colorData.quantity + item.quantity }).eq("id", item.color_id)
-    }
-
+    // Optionally update 'base_price' in articles
     await adminSupabase.from("articles").update({ base_price: item.sale_price }).eq("id", item.article_id)
   }
+
+  // 4. Update Validation Payment if provided (this simplifies logic for now: we delete the associated main versement and replace it if amount > 0, or just leave existing payments untouched if we want a separate payment tracking)
+  // For simplicity: We will just insert a new payment if payment_amount > 0 and it's missing, but editing existing payments should be done via Suppliers page
+
 
   revalidatePath("/admin/vouchers")
   revalidatePath("/admin/stock")

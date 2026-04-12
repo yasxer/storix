@@ -39,6 +39,14 @@ Use this file to track your progress. Check off items by changing `[ ]` to `[x]`
 - [x] Responsive design check (Mobile-first, touch targets)
 - [x] Test RLS and error handling boundaries
 
+## 4.5. Suppliers Management (Fournisseurs)
+- [x] Database: Add `suppliers` and `supplier_payments` tables, update `purchase_vouchers`.
+- [x] Integrate Supplier selection in `VoucherForm`.
+- [x] Handle initial `payment_amount` via Dialog/Popup when creating a Voucher.
+- [ ] Admin: List of Suppliers page (`/admin/suppliers`) showing debts (soldes).
+- [ ] Admin: Supplier Detail page (view history of vouchers & payments, add/delete payments).
+- [ ] Delete Supplier logic (only if solde is 0).
+
 ---
 
 # Phase 2: Khadem (Employee) Dashboard & Client Storefront

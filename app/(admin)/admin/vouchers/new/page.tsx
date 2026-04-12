@@ -19,6 +19,12 @@ export default async function NewVoucherPage() {
     .eq("is_published", true)
     .order("title")
 
+  // Fetch suppliers
+  const { data: suppliers } = await supabase
+    .from("suppliers")
+    .select("id, name, phone")
+    .order("name")
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="mb-8">
@@ -28,7 +34,7 @@ export default async function NewVoucherPage() {
         </p>
       </div>
 
-      <VoucherForm articles={articles || []} />
+      <VoucherForm articles={articles || []} suppliers={suppliers || []} />
     </div>
   )
 }
