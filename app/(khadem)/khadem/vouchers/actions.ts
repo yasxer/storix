@@ -51,10 +51,10 @@ export async function createPurchaseVoucher(data: {
     // Note: Stock quantity is managed automatically by Supabase DB Trigger
     // So we don't update `article_size_colors.quantity` here.
 
-    // Optionally update 'base_price' in articles if you want sale_price to overrule the product price
+    // Optionally update 'base_price' and 'purchase_price' in articles if you want sale_price to overrule the product price
     await adminSupabase
       .from("articles")
-      .update({ base_price: item.sale_price })
+      .update({ base_price: item.sale_price, purchase_price: item.purchase_price })
       .eq("id", item.article_id)
   }
 
@@ -128,8 +128,11 @@ export async function updatePurchaseVoucher(id: string, data: {
       sale_price: item.sale_price
     })
 
-    // Optionally update 'base_price' in articles
-    await adminSupabase.from("articles").update({ base_price: item.sale_price }).eq("id", item.article_id)
+    // Optionally update 'base_price' and 'purchase_price' in articles
+    await adminSupabase.from("articles").update({ 
+      base_price: item.sale_price,
+      purchase_price: item.purchase_price
+    }).eq("id", item.article_id)
   }
 
   revalidatePath("/khadem/vouchers")

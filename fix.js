@@ -1,0 +1,1 @@
+const fs = require('fs'); let code = fs.readFileSync('FIX_SUPABASE.sql', 'utf8'); code = code.split(String.raw\\database/migrations_vouchers_stock.sql\).join('\$\$'); fs.writeFileSync('FIX_SUPABASE.sql', code);

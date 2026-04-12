@@ -1,20 +1,23 @@
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
-import { ArrowLeft, Wallet, ReceiptText, Calendar } from "lucide-react"
+import { ArrowLeft, Wallet, ReceiptText, Calendar, Phone, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import { AddPaymentDialog } from "@/components/admin/suppliers/add-payment-dialog"
+import { EditPaymentDialog } from "@/components/admin/suppliers/edit-payment-dialog"
 
-export default async function SupplierDetailPage({ params }: { params: { id: string } }) {
+export default async function SupplierDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
   const supabase = await createClient()
 
   const { data: supplier, error: supErr } = await supabase
     .from("suppliers")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", resolvedParams.id)
     .single()
 
   if (supErr || !supplier) {
+    console.error("Supplier Fetch Error:", supErr)
     return <div className="p-8 text-center text-red-500">Fournisseur introuvable.</div>
   }
 
@@ -26,7 +29,7 @@ export default async function SupplierDetailPage({ params }: { params: { id: str
       profiles!purchase_vouchers_created_by_fkey(full_name),
       purchase_voucher_items ( quantity, purchase_price )
     `)
-    .eq("supplier_id", params.id)
+    .eq("supplier_id", resolvedParams.id)
     .order("created_at", { ascending: false })
 
   // Get Payments (Versements)
@@ -36,7 +39,7 @@ export default async function SupplierDetailPage({ params }: { params: { id: str
       id, amount, payment_date, notes, created_at, voucher_id,
       profiles(full_name)
     `)
-    .eq("supplier_id", params.id)
+    .eq("supplier_id", resolvedParams.id)
     .order("payment_date", { ascending: false })
 
   // Calculs
@@ -67,8 +70,8 @@ export default async function SupplierDetailPage({ params }: { params: { id: str
             </span>
           </h1>
           <p className="text-sm text-[var(--color-text-muted)] mt-1 flex gap-4">
-            <span>📞 {supplier.phone || "N/A"}</span>
-            <span>📍 {supplier.address || "N/A"}</span>
+            <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {supplier.phone || "N/A"}</span>
+            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {supplier.address || "N/A"}</span>
           </p>
         </div>
       </div>
@@ -123,7 +126,7 @@ export default async function SupplierDetailPage({ params }: { params: { id: str
           <div className="divide-y max-h-[500px] overflow-y-auto">
             {(!payments || payments.length === 0) && <p className="p-8 text-center text-gray-400 text-sm">Aucun versement enregistré.</p>}
             {payments?.map((p: any) => (
-              <div key={p.id} className="p-4 hover:bg-green-50/50 flex justify-between items-center">
+              <div key={p.id} className="p-4 hover:bg-green-50/50 flex justify-between items-center group relative">
                 <div>
                   <p className="text-sm font-bold text-green-700">+{p.amount.toFixed(2)} DZD</p>
                   <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
@@ -131,8 +134,11 @@ export default async function SupplierDetailPage({ params }: { params: { id: str
                     {p.notes && <span className="ml-2 italic text-gray-400">- {p.notes}</span>}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex items-center gap-3">
                   <span className="text-xs text-gray-400">Par: {p.profiles?.full_name || 'Admin'}</span>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <EditPaymentDialog payment={{...p, supplier_id: resolvedParams.id}} />
+                  </div>
                 </div>
               </div>
             ))}

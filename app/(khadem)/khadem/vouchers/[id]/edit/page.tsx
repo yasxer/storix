@@ -24,7 +24,7 @@ export default async function EditVoucherPage({ params }: { params: Promise<{ id
   const { data: articles } = await supabase
     .from("articles")
     .select(`
-      id, title, base_price, barcode,
+      id, title, base_price, purchase_price, barcode,
       article_sizes (
         id, size_label,
         article_size_colors (

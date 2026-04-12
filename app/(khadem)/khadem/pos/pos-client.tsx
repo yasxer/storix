@@ -50,6 +50,44 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
     searchRef.current?.focus()
   }, [])
 
+  const restoreDefaultCatalog = useCallback(async () => {
+    setQuery('')
+    const defaultItems = await searchArticles('')
+    setResults(defaultItems)
+  }, [])
+
+  const addToCart = useCallback((article: any, size: any, color: any) => {
+    if (color.quantity <= 0) return; // Prevent adding zero stock
+
+    const itemKey = `${article.id}-${size.id}-${color.id}`
+    const unitPrice = size.price_override || article.base_price
+    const maxQuantity = color.quantity
+
+    setCart(prev => {
+      const existing = prev.find(i => i.id === itemKey)
+      if (existing) {
+         if (existing.quantity >= maxQuantity) return prev // Can't add more than stock
+         return prev.map(i => i.id === itemKey ? { ...i, quantity: i.quantity + 1 } : i)
+      }
+      return [...prev, {
+        id: itemKey,
+        articleId: article.id,
+        sizeId: size.id,
+        colorId: color.id,
+        title: article.title,
+        sizeLabel: size.size_label,
+        colorName: color.color_name,
+        colorHex: color.color_hex,
+        unitPrice: unitPrice,
+        quantity: 1,
+        maxQuantity
+      }]
+    })
+
+    restoreDefaultCatalog()
+    searchRef.current?.focus()
+  }, [restoreDefaultCatalog])
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     setQuery(val)
@@ -87,50 +125,11 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
     })
   }, [])
 
-  const restoreDefaultCatalog = useCallback(async () => {
-    setQuery('')
-    const defaultItems = await searchArticles('')
-    setResults(defaultItems)
-  }, [])
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
      if (e.key === 'Enter') {
         const val = query
      }
   }
-
-  const addToCart = useCallback((article: any, size: any, color: any) => {
-    if (color.quantity <= 0) return; // Prevent adding zero stock
-
-    const itemKey = `${article.id}-${size.id}-${color.id}`
-    const unitPrice = size.price_override || article.base_price
-    const maxQuantity = color.quantity
-
-    setCart(prev => {
-      const existing = prev.find(i => i.id === itemKey)
-      if (existing) {
-         if (existing.quantity >= maxQuantity) return prev // Can't add more than stock
-         return prev.map(i => i.id === itemKey ? { ...i, quantity: i.quantity + 1 } : i)
-      }
-      return [...prev, {
-        id: itemKey,
-        articleId: article.id,
-        sizeId: size.id,
-        colorId: color.id,
-        title: article.title,
-        sizeLabel: size.size_label,
-        colorName: color.color_name,
-        colorHex: color.color_hex,
-        unitPrice: unitPrice,
-        quantity: 1,
-        maxQuantity
-      }]
-    })
-
-    // Reset search query and restore catalog
-    restoreDefaultCatalog()
-    searchRef.current?.focus()
-  }, [restoreDefaultCatalog])
 
   const updateQuantity = (id: string, delta: number) => {
     setCart(prev => prev.map(item => {

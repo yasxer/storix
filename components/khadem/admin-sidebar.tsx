@@ -49,7 +49,7 @@ export function AdminSidebar({
 }) {
   const pathname = usePathname()
 
-  const SidebarContent = () => (
+  const renderSidebarContent = () => (
     <div className="flex h-full flex-col bg-[var(--color-surface)]">
       <div className="flex h-16 shrink-0 items-center px-6 border-b border-[var(--color-border)]">
         <div className="flex items-center gap-2 text-[var(--color-primary)]">
@@ -113,7 +113,7 @@ export function AdminSidebar({
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-col border-r border-[var(--color-border)] md:flex shrink-0">
-        <SidebarContent />
+        {renderSidebarContent()}
       </aside>
 
       {/* Mobile Sidebar & Header */}
@@ -136,7 +136,7 @@ export function AdminSidebar({
               <SheetHeader className="sr-only">
                 <SheetTitle>Navigation Menu</SheetTitle>
               </SheetHeader>
-              <SidebarContent />
+              {renderSidebarContent()}
             </SheetContent>
           </Sheet>
         </header>

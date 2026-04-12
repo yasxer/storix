@@ -21,6 +21,7 @@ type Model = { id: string; name: string; category_id: string }
 const productSchema = z.object({
   title: z.string().min(2, "Title is required"),
   base_price: z.coerce.number().min(0, "Price must be positive"),
+  purchase_price: z.coerce.number().min(0, "Purchase price must be positive").default(0),
   category_id: z.string().min(1, "Category is required"),
   model_id: z.string().optional(),
   charika: z.string().optional(),
@@ -62,6 +63,7 @@ export function ProductForm({ categories, models, initialData }: { categories: C
     defaultValues: initialData || {
       title: "",
       base_price: 0,
+      purchase_price: 0,
       charika: "",
       description: "",
       category_id: "",
@@ -158,6 +160,7 @@ export function ProductForm({ categories, models, initialData }: { categories: C
         const { error: articleErr } = await supabase.from("articles").update({
           title: data.title,
           base_price: data.base_price,
+          purchase_price: data.purchase_price,
           category_id: data.category_id,
           model_id: data.model_id || null,
           charika: data.charika || null,
@@ -172,6 +175,7 @@ export function ProductForm({ categories, models, initialData }: { categories: C
         const { data: article, error: articleErr } = await supabase.from("articles").insert({
           title: data.title,
           base_price: data.base_price,
+          purchase_price: data.purchase_price,
           category_id: data.category_id,
           model_id: data.model_id || null,
           charika: data.charika || null,
@@ -270,15 +274,21 @@ export function ProductForm({ categories, models, initialData }: { categories: C
       <div className="space-y-4">
         <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Basic Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium mb-1">Title</label>
             <Input {...form.register("title")} placeholder="Product Name" className="bg-white" />
             {form.formState.errors.title && <p className="text-sm text-red-500 mt-1">{form.formState.errors.title.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Base Price (DA)</label>
-            <Input type="number" {...form.register("base_price")} className="bg-white" />
+            <label className="block text-sm font-medium mb-1">Prix d'Achat (DA)</label>
+            <Input type="number" {...form.register("purchase_price")} className="bg-white border-blue-200 focus-visible:ring-blue-500" />
+            {form.formState.errors.purchase_price && <p className="text-sm text-red-500 mt-1">{form.formState.errors.purchase_price.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Prix de Vente (Base Price DA)</label>
+            <Input type="number" {...form.register("base_price")} className="bg-white border-green-200 focus-visible:ring-green-500" />
             {form.formState.errors.base_price && <p className="text-sm text-red-500 mt-1">{form.formState.errors.base_price.message}</p>}
           </div>
 

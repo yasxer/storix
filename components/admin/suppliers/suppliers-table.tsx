@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { MoreHorizontal, Pencil, Trash2, Eye, Truck, Wallet } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { deleteSupplier } from "@/app/(admin)/admin/suppliers/actions"
 
@@ -87,12 +87,10 @@ export function SuppliersTable({ suppliers }: { suppliers: any[] }) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(`/admin/suppliers/${sup.id}`)}>
                       <Eye className="mr-2 h-4 w-4" />
                       Voir Détails & Versements
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       className="cursor-pointer text-red-600 focus:text-red-700" 
                       onClick={() => handleDelete(sup.id, sup.solde)}

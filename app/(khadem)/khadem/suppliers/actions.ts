@@ -51,6 +51,38 @@ export async function addSupplierPayment(data: { supplier_id: string, voucher_id
 
   if (error) return { error: error.message }
   revalidatePath(`/admin/suppliers/${data.supplier_id}`)
+  revalidatePath(`/khadem/suppliers/${data.supplier_id}`)
   revalidatePath("/admin/vouchers")
+  revalidatePath("/khadem/vouchers")
+  return { success: true }
+}
+
+export async function updateSupplierPayment(id: string, data: { amount: number, notes?: string, payment_date: string }) {
+  const adminSupabase = createAdminClient() as any
+  const { data: payment, error: fetchErr } = await adminSupabase.from("supplier_payments").select("supplier_id").eq("id", id).single()
+  if (fetchErr) return { error: fetchErr.message }
+
+  const { error } = await adminSupabase.from("supplier_payments").update({
+    amount: data.amount,
+    payment_date: data.payment_date,
+    notes: data.notes || null
+  }).eq("id", id)
+
+  if (error) return { error: error.message }
+  revalidatePath(`/admin/suppliers/${payment.supplier_id}`)
+  revalidatePath(`/khadem/suppliers/${payment.supplier_id}`)
+  return { success: true }
+}
+
+export async function deleteSupplierPayment(id: string) {
+  const adminSupabase = createAdminClient() as any
+  const { data: payment, error: fetchErr } = await adminSupabase.from("supplier_payments").select("supplier_id").eq("id", id).single()
+  if (fetchErr) return { error: fetchErr.message }
+
+  const { error } = await adminSupabase.from("supplier_payments").delete().eq("id", id)
+  if (error) return { error: error.message }
+  
+  revalidatePath(`/admin/suppliers/${payment.supplier_id}`)
+  revalidatePath(`/khadem/suppliers/${payment.supplier_id}`)
   return { success: true }
 }

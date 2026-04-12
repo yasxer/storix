@@ -13,7 +13,7 @@ import { addSupplierPayment } from "@/app/(admin)/admin/suppliers/actions"
 import { format } from "date-fns"
 
 const paymentSchema = z.object({
-  amount: z.coerce.number().min(0.01, "Le montant doit être supérieur à 0"),
+  amount: z.any().transform(v => v === "" ? "" : Number(v)).pipe(z.union([z.number().min(0.01, "Le montant doit être supérieur à 0"), z.literal("")])),
   payment_date: z.string().min(1, "Date requise"),
   notes: z.string().optional()
 })
@@ -27,10 +27,10 @@ export function AddPaymentDialog({ supplierId, solde }: { supplierId: string, so
 
   const form = useForm<FormValues>({
     resolver: zodResolver(paymentSchema),
-    defaultValues: { 
-        amount: solde > 0 ? solde : 0, 
+    defaultValues: {
+        amount: "",
         payment_date: format(new Date(), "yyyy-MM-dd"),
-        notes: "" 
+        notes: ""
     }
   })
 
@@ -38,7 +38,7 @@ export function AddPaymentDialog({ supplierId, solde }: { supplierId: string, so
     setIsLoading(true)
     const result = await addSupplierPayment({
         supplier_id: supplierId,
-        amount: data.amount,
+        amount: Number(data.amount),
         payment_date: data.payment_date,
         notes: data.notes
     })
@@ -48,7 +48,7 @@ export function AddPaymentDialog({ supplierId, solde }: { supplierId: string, so
     } else {
       setOpen(false)
       form.reset({
-        amount: 0,
+        amount: "",
         payment_date: format(new Date(), "yyyy-MM-dd"),
         notes: ""
       })
@@ -72,14 +72,23 @@ export function AddPaymentDialog({ supplierId, solde }: { supplierId: string, so
           </DialogTitle>
         </DialogHeader>
 
-        <div className="bg-gray-50 p-3 rounded text-sm text-center">
-            Solde actuel (Crédit): <span className="font-bold text-red-600">{solde.toFixed(2)} DZD</span>
-        </div>
-
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Montant payé (DZD) <span className="text-red-500">*</span></label>
-            <Input type="number" step="0.01" {...form.register("amount")} className="bg-gray-50 border-gray-200 text-lg py-5 font-bold text-green-700" />
+            <label className="text-sm font-medium text-gray-600">Solde actuel (Crédit)</label>
+            <Input type="text" value={`${solde.toFixed(2)} DZD`} disabled className="bg-gray-100 border-gray-200 text-red-600 font-bold cursor-not-allowed uppercase" />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Montant payé (Versement) <span className="text-red-500">*</span></label>
+            <div className="flex gap-3">
+              <Input type="number" step="0.01" placeholder="0.00" {...form.register("amount")} className="bg-white border-gray-200 text-lg py-5 font-bold text-green-700 flex-1" />
+              <div className="bg-blue-50 border border-blue-100 px-4 py-2 rounded-md flex-1 flex flex-col justify-center">
+                <span className="text-[10px] text-blue-500 uppercase font-bold tracking-wider">Le reste sera</span>
+                <span className="font-bold text-lg text-blue-900 leading-none mt-1">
+                  {(solde - (parseFloat(form.watch("amount" as any)) || 0)).toFixed(2)} DZD
+                </span>
+              </div>
+            </div>
             {form.formState.errors.amount && <p className="text-xs text-red-500">{form.formState.errors.amount.message}</p>}
           </div>
           

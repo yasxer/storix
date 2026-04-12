@@ -51,10 +51,10 @@ export async function createPurchaseVoucher(data: {
       sale_price: item.sale_price
     })
 
-    // Optionally update 'base_price' in articles
+    // Optionally update 'base_price' and 'purchase_price' in articles
     await adminSupabase
       .from("articles")
-      .update({ base_price: item.sale_price })
+      .update({ base_price: item.sale_price, purchase_price: item.purchase_price })
       .eq("id", item.article_id)
   }
 
@@ -144,8 +144,11 @@ export async function updatePurchaseVoucher(id: string, data: {
       sale_price: item.sale_price
     })
 
-    // Optionally update 'base_price' in articles
-    await adminSupabase.from("articles").update({ base_price: item.sale_price }).eq("id", item.article_id)
+    // Optionally update 'base_price' and 'purchase_price' in articles
+    await adminSupabase.from("articles").update({ 
+      base_price: item.sale_price,
+      purchase_price: item.purchase_price
+    }).eq("id", item.article_id)
   }
 
   // 4. Update Validation Payment if provided (this simplifies logic for now: we delete the associated main versement and replace it if amount > 0, or just leave existing payments untouched if we want a separate payment tracking)

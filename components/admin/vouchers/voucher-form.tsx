@@ -50,6 +50,8 @@ export function VoucherForm({ articles, suppliers = [], initialData, redirectPat
   const watchedItems = form.watch("items")
   const totalCost = watchedItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.purchase_price || 0)), 0)
 
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: "items" })
+
   const handlePreSubmit = (data: VoucherFormValues) => {
     setPendingData(data)
     setPaymentAmount(0) // Default no payment, or set to totalCost if you prefer fully paid default
@@ -136,12 +138,15 @@ export function VoucherForm({ articles, suppliers = [], initialData, redirectPat
                   {...form.register(`items.${index}.article_id`)}
                   className="w-full h-10 px-3 border border-gray-200 rounded text-sm bg-white"
                   onChange={(e) => {
-                    // Update article, clear size and color, set default sale price
-                    form.setValue(`items.${index}.article_id`, e.target.value);
-                    form.setValue(`items.${index}.size_id`, "");
-                    form.setValue(`items.${index}.color_id`, "");
-                    const a = articles.find(art => art.id === e.target.value);
-                    if (a) form.setValue(`items.${index}.sale_price`, a.base_price);
+                      // Update article, clear size and color, set default sale price & purchase price
+                      form.setValue(`items.${index}.article_id`, e.target.value);
+                      form.setValue(`items.${index}.size_id`, "");
+                      form.setValue(`items.${index}.color_id`, "");
+                      const a = articles.find(art => art.id === e.target.value);
+                      if (a) {
+                        form.setValue(`items.${index}.sale_price`, a.base_price);
+                        form.setValue(`items.${index}.purchase_price`, a.purchase_price || 0);
+                      }
                   }}
                 >
                   <option value="">-- Select Product --</option>
@@ -220,6 +225,9 @@ export function VoucherForm({ articles, suppliers = [], initialData, redirectPat
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md bg-white border-0 !p-0 overflow-hidden shadow-xl rounded-xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Paiement Fournisseur</DialogTitle>
+          </DialogHeader>
           <div className="flex flex-col">
             <div className="px-6 py-5 border-b bg-gray-50/50">
               <h2 className="text-xl font-bold flex items-center gap-2">Paiement Fournisseur</h2>

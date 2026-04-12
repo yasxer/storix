@@ -31,7 +31,11 @@ export function AddSupplierDialog() {
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true)
-    const result = await createSupplier(data)
+    const result = await createSupplier({
+        name: data.name,
+        phone: data.phone || "",
+        address: data.address || ""
+    })
     if (result.error) {
       alert("Erreur: " + result.error)
     } else {
