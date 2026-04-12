@@ -1,7 +1,5 @@
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
 import { Image as ImageIcon } from "lucide-react"
-import Image from "next/image"
 
 interface ModelCardProps {
   model: {
@@ -19,13 +17,16 @@ export function ModelCard({ model, categorySlug, categoryImage, articleCount }: 
 
   return (
     <Link href={modelUrl}>
-      <Card className="group overflow-hidden transition-all hover:shadow-md cursor-pointer border-transparent shadow-sm">
-        <div className="aspect-square bg-muted/30 relative overflow-hidden flex items-center justify-center">
+      <div 
+        className="group overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1"
+        style={{ borderRadius: '30px', boxShadow: 'var(--wise-ring)', background: '#ffffff' }}
+      >
+        <div className="aspect-square relative overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#fafaf8' }}>
           {model.photo_url ? (
             <img
               src={model.photo_url}
               alt={model.name}
-              className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 mix-blend-multiply"
+              className="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
             />
           ) : categoryImage ? (
             <img
@@ -34,19 +35,25 @@ export function ModelCard({ model, categorySlug, categoryImage, articleCount }: 
               className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <ImageIcon className="h-10 w-10 text-muted-foreground/30" />
+            <ImageIcon className="h-10 w-10" style={{ color: 'var(--wise-light-surface)' }} />
           )}
-          <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors z-10" />
+          {/* Green overlay on hover */}
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{ backgroundColor: 'rgba(159,232,112,0.08)' }}
+          />
         </div>
-        <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-          <h3 className="font-bold text-lg">{model.name}</h3>
+        <div className="p-4 md:p-5 text-center">
+          <h3 className="font-semibold text-base md:text-lg" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>
+            {model.name}
+          </h3>
           {articleCount !== undefined && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs mt-1.5" style={{ color: 'var(--wise-gray)' }}>
               {articleCount} {articleCount === 1 ? 'Article' : 'Articles'}
             </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   )
 }

@@ -27,7 +27,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     .order("name", { ascending: true })
 
   // If models exist, we will also fetch article counts per model
-  let modelsWithCounts = []
+  let modelsWithCounts: any[] = []
   if (models && models.length > 0) {
     const { data: countsData } = await supabase
       .from("articles")
@@ -46,7 +46,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     }))
   }
 
-  let articles = []
+  let articles: any[] = []
   if (!models || models.length === 0) {
     const { data } = await supabase
       .from("articles")
@@ -68,15 +68,22 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <main className="container mx-auto px-4 py-8 md:py-12">
-      <div className="mb-6 md:mb-8 text-center md:text-left">
-        <h1 className="text-2xl md:text-3xl font-black font-display uppercase inline-block relative">
+      {/* Category heading with green underline */}
+      <div className="mb-8 md:mb-10 text-center md:text-left">
+        <h1 
+          className="text-2xl md:text-4xl font-bold inline-block relative tracking-tight"
+          style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}
+        >
            {category.name}
-           <div className="h-0.5 w-[40%] bg-gradient-to-r from-rose-400 to-orange-400 mx-auto md:mx-0 md:w-full mt-1.5 rounded-full md:absolute md:-bottom-2 md:left-0 md:h-1"></div>
+           <div 
+             className="h-1 w-[50%] md:w-full mt-2 rounded-full mx-auto md:mx-0"
+             style={{ backgroundColor: 'var(--wise-green)' }}
+           />
         </h1>
       </div>
 
       {models && models.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
           {modelsWithCounts.map((model: any) => (
             <ModelCard
               key={model.id}
@@ -88,18 +95,24 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           ))}
         </div>
       ) : articles.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {articles.map((article: any) => (
             <ProductCard key={article.id} article={article} />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-center border rounded-lg bg-muted/10 h-[40vh]">
-          <div className="h-16 w-16 mb-4 rounded-full bg-muted flex items-center justify-center">
-            <ShoppingBag className="h-8 w-8 text-muted-foreground" />
+        <div 
+          className="flex flex-col items-center justify-center py-24 text-center h-[40vh]"
+          style={{ borderRadius: '30px', boxShadow: 'var(--wise-ring)' }}
+        >
+          <div 
+            className="h-16 w-16 mb-5 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: 'var(--wise-mint)' }}
+          >
+            <ShoppingBag className="h-8 w-8" style={{ color: 'var(--wise-dark-green)' }} />
           </div>
-          <h2 className="text-xl font-semibold mb-2">Bientôt disponible</h2>
-          <p className="text-muted-foreground max-w-sm">
+          <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>Bientôt disponible</h2>
+          <p className="max-w-sm text-sm" style={{ color: 'var(--wise-gray)' }}>
             Aucun article n'a encore été ajouté à cette catégorie. Revenez plus tard !
           </p>
         </div>

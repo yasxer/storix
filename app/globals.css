@@ -79,11 +79,86 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
+  font-feature-settings: "calt";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   border-color: var(--color-border);
 }
+
+/* ═══════════════════════════════════════════
+   WISE DESIGN SYSTEM — STORE TOKENS
+   ═══════════════════════════════════════════ */
+
+:root {
+  --wise-green: #9fe870;
+  --wise-dark-green: #163300;
+  --wise-black: #0e0f0c;
+  --wise-mint: #e2f6d5;
+  --wise-pastel: #cdffad;
+  --wise-warm-dark: #454745;
+  --wise-gray: #868685;
+  --wise-light-surface: #e8ebe6;
+  --wise-danger: #d03238;
+  --wise-ring: 0 0 0 1px rgba(14,15,12,0.12);
+  --wise-ring-green: 0 0 0 1px #9fe870;
+}
+
+/* Wise Pill Button — Primary */
+.wise-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--wise-green);
+  color: var(--wise-dark-green);
+  font-weight: 600;
+  padding: 0.625rem 1.5rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  font-feature-settings: "calt";
+}
+.wise-btn:hover { transform: scale(1.05); }
+.wise-btn:active { transform: scale(0.95); }
+
+/* Wise Pill Button — Secondary */
+.wise-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: rgba(22, 51, 0, 0.08);
+  color: var(--wise-black);
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.wise-btn-secondary:hover { transform: scale(1.05); }
+.wise-btn-secondary:active { transform: scale(0.95); }
+
+/* Wise Card */
+.wise-card {
+  background: #ffffff;
+  border-radius: 30px;
+  box-shadow: var(--wise-ring);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.wise-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--wise-ring), 0 4px 12px rgba(14,15,12,0.06);
+}
+
+/* No scrollbar */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 
 @theme inline {
   --font-heading:          var(--font-sans);

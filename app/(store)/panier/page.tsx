@@ -1,8 +1,7 @@
 "use client"
 
 import { useCartStore } from "@/lib/store/cart"
-import { Button } from "@/components/ui/button"
-import { ShoppingBag, Minus, Plus, Trash2, ArrowRight } from "lucide-react"
+import { ShoppingBag, Minus, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
@@ -32,18 +31,31 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <main className="container mx-auto px-4 py-16 md:py-24 text-center max-w-lg min-h-[60vh] flex flex-col justify-center">
-        <div className="h-24 w-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <ShoppingBag className="h-10 w-10 text-slate-400" />
+        <div 
+          className="h-24 w-24 rounded-full flex items-center justify-center mx-auto mb-6"
+          style={{ backgroundColor: 'var(--wise-mint)' }}
+        >
+          <ShoppingBag className="h-10 w-10" style={{ color: 'var(--wise-dark-green)' }} />
         </div>
-        <h1 className="text-3xl font-black mb-4 text-slate-900 tracking-tight">Votre panier est vide</h1>
-        <p className="text-slate-500 mb-8 font-medium">
+        <h1 className="text-3xl font-bold mb-4 tracking-tight" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>
+          Votre panier est vide
+        </h1>
+        <p className="mb-8 font-medium" style={{ color: 'var(--wise-gray)' }}>
           Vous n'avez pas encore ajouté d'articles à votre panier. Découvrez nos nouveautés !
         </p>
         <Link href="/boutique">
-          <Button size="lg" className="rounded-full font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98] bg-slate-900 hover:bg-slate-800 text-white px-8">
-            <ShoppingBag className="mr-2 h-5 w-5" />
+          <button 
+            className="inline-flex items-center gap-2 font-semibold px-8 py-4 transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{ 
+              borderRadius: '9999px', 
+              backgroundColor: 'var(--wise-green)', 
+              color: 'var(--wise-dark-green)',
+              fontFeatureSettings: '"calt"',
+            }}
+          >
+            <ShoppingBag className="h-5 w-5" />
             Continuer mes achats
-          </Button>
+          </button>
         </Link>
       </main>
     )
@@ -51,17 +63,28 @@ export default function CartPage() {
 
   return (
     <main className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
-      <h1 className="text-3xl font-black mb-8 text-slate-900 tracking-tight">Mon Panier ({items.reduce((acc, i) => acc + i.quantity, 0)})</h1>
+      <h1 className="text-3xl font-bold mb-8 tracking-tight" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>
+        Mon Panier ({items.reduce((acc, i) => acc + i.quantity, 0)})
+      </h1>
 
       <div className="flex flex-col gap-6">
-        {/* Top: Items List */}
-        <div className="bg-white sm:rounded-2xl shadow-sm p-4 sm:p-8 border-y sm:border border-slate-200">
-          <h2 className="text-xl font-bold text-slate-900 mb-4 border-b border-slate-200 pb-4">Articles</h2>
+        {/* Items List */}
+        <div 
+          className="p-5 sm:p-8"
+          style={{ borderRadius: '30px', boxShadow: 'var(--wise-ring)', background: '#ffffff' }}
+        >
+          <h2 className="text-xl font-bold mb-4 pb-4" style={{ color: 'var(--wise-black)', borderBottom: '1px solid rgba(14,15,12,0.08)', fontFeatureSettings: '"calt"' }}>
+            Articles
+          </h2>
+          
           {items.map((item) => (
-            <div key={`${item.article_id}-${item.size_id}-${item.color_id}`} className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start pb-6 border-b border-slate-100 last:border-0 last:pb-0 pt-4">
+            <div key={`${item.article_id}-${item.size_id}-${item.color_id}`} className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start pb-6 last:pb-0 pt-4" style={{ borderBottom: '1px solid rgba(14,15,12,0.06)' }}>
 
               {/* Product Image */}
-              <div className="h-32 w-28 shrink-0 rounded-lg overflow-hidden bg-slate-50 relative border border-slate-200">
+              <div 
+                className="h-32 w-28 shrink-0 overflow-hidden relative flex items-center justify-center"
+                style={{ borderRadius: '16px', boxShadow: 'var(--wise-ring)', backgroundColor: '#fafaf8' }}
+              >
                 {item.photo_url ? (
                   <Image 
                     src={item.photo_url} 
@@ -71,29 +94,38 @@ export default function CartPage() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <ShoppingBag className="w-8 h-8 text-slate-300" />
+                    <ShoppingBag className="w-8 h-8" style={{ color: 'var(--wise-light-surface)' }} />
                   </div>
                 )}
               </div>
 
-              {/* Product Info & Actions */}
+              {/* Product Info */}
               <div className="flex-1 flex flex-col w-full h-full justify-between">
                 <div className="flex justify-between items-start w-full gap-4">
                   <div>
-                    <Link href={`/article/${item.article_id}`} className="font-bold text-base sm:text-lg text-slate-900 hover:underline line-clamp-2">
+                    <Link 
+                      href={`/article/${item.article_id}`} 
+                      className="font-semibold text-base sm:text-lg line-clamp-2 hover:underline"
+                      style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}
+                    >
                       {item.title}
                     </Link>
-                    <div className="text-sm text-slate-500 mt-2 space-y-1.5 font-medium">
+                    <div className="text-sm mt-2 space-y-1.5 font-medium">
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-400">Taille:</span> 
-                        <span className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-700">{item.size_label}</span>
+                        <span style={{ color: 'var(--wise-gray)' }}>Taille:</span> 
+                        <span 
+                          className="px-2.5 py-0.5 rounded-[9999px] text-xs font-semibold"
+                          style={{ backgroundColor: 'rgba(22,51,0,0.05)', color: 'var(--wise-black)' }}
+                        >
+                          {item.size_label}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-400">Couleur:</span>
-                        <div className="flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md text-slate-700">
+                        <span style={{ color: 'var(--wise-gray)' }}>Couleur:</span>
+                        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-[9999px] text-xs font-semibold" style={{ backgroundColor: 'rgba(22,51,0,0.05)', color: 'var(--wise-black)' }}>
                           <div 
-                            className="w-3 h-3 rounded-full border border-slate-200 shadow-sm" 
-                            style={{ backgroundColor: item.color_hex }}
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: item.color_hex, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)' }}
                             title={item.color_name}
                           />
                           <span>{item.color_name}</span>
@@ -101,34 +133,41 @@ export default function CartPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="font-black text-lg text-slate-900 whitespace-nowrap bg-slate-50 px-3 py-1 rounded-xl">
+                  <div 
+                    className="font-bold text-lg whitespace-nowrap px-3 py-1"
+                    style={{ color: 'var(--wise-black)', borderRadius: '9999px', backgroundColor: 'rgba(22,51,0,0.04)' }}
+                  >
                     {item.unit_price} DA
                   </div>
                 </div>
 
                 <div className="flex justify-between items-center mt-6 w-full">
                   {/* Quantity Control */}
-                  <div className="flex items-center border border-slate-200 rounded-full p-1 bg-white shadow-sm">
+                  <div 
+                    className="flex items-center p-1"
+                    style={{ borderRadius: '9999px', boxShadow: 'var(--wise-ring)', background: '#ffffff' }}
+                  >
                     <button 
                       onClick={() => updateQuantity(item.article_id, item.size_id, item.color_id, Math.max(1, item.quantity - 1))}
                       disabled={item.quantity <= 1}
-                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-600 transition-colors disabled:opacity-30"
+                      className="w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 hover:bg-[rgba(211,242,192,0.4)] disabled:opacity-30"
                     >
-                      <Minus className="w-3.5 h-3.5" />
+                      <Minus className="w-3.5 h-3.5" style={{ color: 'var(--wise-black)' }} />
                     </button>
-                    <span className="font-bold text-sm w-10 text-center text-slate-900">{item.quantity}</span>
+                    <span className="font-bold text-sm w-10 text-center" style={{ color: 'var(--wise-black)' }}>{item.quantity}</span>
                     <button 
                       onClick={() => updateQuantity(item.article_id, item.size_id, item.color_id, item.quantity + 1)}
-                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
+                      className="w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 hover:bg-[rgba(211,242,192,0.4)]"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-3.5 h-3.5" style={{ color: 'var(--wise-black)' }} />
                     </button>
                   </div>
 
-                  {/* Remove Item */}
+                  {/* Remove */}
                   <button 
                     onClick={() => removeItem(item.article_id, item.size_id, item.color_id)}
-                    className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5 text-sm font-bold"
+                    className="px-3 py-2 rounded-[9999px] transition-all duration-200 flex items-center gap-1.5 text-sm font-semibold hover:bg-[rgba(208,50,56,0.06)]"
+                    style={{ color: 'var(--wise-warm-dark)' }}
                   >
                     <Trash2 className="w-4 h-4" />
                     <span className="hidden sm:inline">Supprimer</span>
@@ -138,29 +177,37 @@ export default function CartPage() {
             </div>
           ))}
           
-          <div className="flex justify-end pt-4 border-t border-slate-100">
+          <div className="flex justify-end pt-4" style={{ borderTop: '1px solid rgba(14,15,12,0.06)' }}>
             <button 
               onClick={clearCart}
-              className="text-sm font-bold text-slate-400 hover:text-rose-500 transition-colors px-4 py-2 hover:bg-slate-50 rounded-full"
+              className="text-sm font-semibold px-4 py-2 rounded-[9999px] transition-all duration-200 hover:bg-[rgba(208,50,56,0.06)]"
+              style={{ color: 'var(--wise-gray)' }}
             >
               Vider le panier
             </button>
           </div>
         </div>
 
-        {/* Bottom: Checkout Form directly integrated */}
+        {/* Checkout Form */}
         <div className="relative mb-12">
-          <div className="bg-white p-4 sm:p-8 sm:rounded-2xl shadow-sm border-y sm:border border-slate-200">
-            <div className="mb-8 pb-6 border-b border-slate-200">
-              <h2 className="text-2xl font-black text-slate-900 mb-2">Confirmation de la commande</h2>
-              <p className="text-sm sm:text-base text-slate-600 font-medium">Veuillez remplir vos informations pour valider.</p>
+          <div 
+            className="p-5 sm:p-8"
+            style={{ borderRadius: '30px', boxShadow: 'var(--wise-ring)', background: '#ffffff' }}
+          >
+            <div className="mb-8 pb-6" style={{ borderBottom: '1px solid rgba(14,15,12,0.08)' }}>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>
+                Confirmation de la commande
+              </h2>
+              <p className="text-sm sm:text-base font-medium" style={{ color: 'var(--wise-gray)' }}>
+                Veuillez remplir vos informations pour valider.
+              </p>
             </div>
             
             {wilayas.length > 0 ? (
               <CheckoutForm wilayas={wilayas} />
             ) : (
               <div className="py-12 flex justify-center">
-                <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-6 h-6 rounded-full animate-spin" style={{ border: '2px solid var(--wise-green)', borderTopColor: 'transparent' }} />
               </div>
             )}
           </div>

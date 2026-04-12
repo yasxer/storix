@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Heart } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 
 export function ProductCard({ article }: { article: any }) {
   const photo = article.photos?.[0]?.photo_url || null
@@ -20,52 +20,79 @@ export function ProductCard({ article }: { article: any }) {
   const isSoldOut = hasSizes && totalStock <= 0;
 
   return (
-    <Link href={`/article/${article.id}`} className={`group block relative border ${isSoldOut ? 'border-gray-100 opacity-80' : 'border-transparent hover:border-gray-200'} rounded-[1.25rem] bg-white overflow-hidden transition-all hover:shadow-xl`}>
+    <Link 
+      href={`/article/${article.id}`} 
+      className={`group block relative overflow-hidden transition-all duration-300 hover:-translate-y-1 ${isSoldOut ? 'opacity-75' : ''}`}
+      style={{ 
+        borderRadius: '30px', 
+        boxShadow: 'var(--wise-ring)',
+        background: '#ffffff',
+      }}
+    >
       {/* Image container */}
-      <div className={`aspect-square relative overflow-hidden flex items-center justify-center rounded-xl mx-3 mt-3 shadow-inner ${isSoldOut ? 'bg-gray-100' : 'bg-gray-50'}`}>
+      <div className={`aspect-square relative overflow-hidden flex items-center justify-center ${isSoldOut ? 'bg-[#f5f5f3]' : 'bg-[#fafaf8]'}`} style={{ borderRadius: '28px 28px 0 0' }}>
         
-        {/* Sold Out Overlay with blur */}
+        {/* Sold Out Overlay */}
         {isSoldOut && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/40 backdrop-blur-[2px]">
-             <span className="bg-black/80 text-white px-4 py-2 rounded-lg font-bold tracking-wider uppercase text-sm shadow-lg">
+             <span 
+               className="px-5 py-2.5 rounded-[9999px] font-semibold tracking-wider uppercase text-xs"
+               style={{ backgroundColor: 'var(--wise-black)', color: '#ffffff' }}
+             >
                 Épuisé
              </span>
           </div>
         )}
 
-        {/* Heart Icon Top Right */}
-        <button className="absolute top-2 right-2 z-10 w-8 h-8 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center shadow-sm text-gray-400 hover:text-red-500 transition-colors">
-          <Heart className="w-4 h-4" />
-        </button>
-
-        {/* Promo Badge */}
+        {/* Sale Badge */}
         {article.is_on_sale && !isSoldOut && (
-           <span className="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider shadow-sm">
+           <span 
+             className="absolute top-3 left-3 z-10 text-[11px] font-bold px-3 py-1.5 rounded-[9999px] uppercase tracking-wider"
+             style={{ backgroundColor: 'var(--wise-green)', color: 'var(--wise-dark-green)' }}
+           >
              -{article.sale_percentage}%
            </span>
         )}
 
+        {/* Arrow indicator on hover */}
+        <div 
+          className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-100 scale-75"
+          style={{ backgroundColor: 'var(--wise-green)', color: 'var(--wise-dark-green)' }}
+        >
+          <ArrowUpRight className="w-4 h-4" />
+        </div>
+
         {photo ? (
-          <img src={photo} alt={article.title} className={`w-full h-full object-contain p-3 md:p-4 transition-transform duration-500 ${isSoldOut ? 'grayscale mix-blend-normal' : 'mix-blend-multiply group-hover:scale-105'}`} />
+          <img 
+            src={photo} 
+            alt={article.title} 
+            className={`w-full h-full object-contain p-4 transition-transform duration-500 ${isSoldOut ? 'grayscale' : 'group-hover:scale-105'}`} 
+          />
         ) : (
-           <span className="text-3xl md:text-4xl text-gray-300 font-bold opacity-30">{article.title.charAt(0)}</span>
+           <span className="text-4xl font-bold opacity-10" style={{ color: 'var(--wise-black)' }}>{article.title.charAt(0)}</span>
         )}
       </div>
 
-      <div className="p-3 md:p-4 pt-2 md:pt-3">
-        <h3 className="font-semibold text-[13px] md:text-[15px] mb-1.5 md:mb-2 text-gray-800 line-clamp-2 leading-snug" dir="auto">
+      <div className="p-4 md:p-5">
+        {article.category?.name && (
+          <span className="text-[11px] font-semibold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--wise-gray)', fontFeatureSettings: '"calt"' }}>
+            {article.category.name}
+          </span>
+        )}
+        
+        <h3 className="font-semibold text-[14px] md:text-[15px] mb-3 line-clamp-2 leading-snug" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }} dir="auto">
           {article.title}
         </h3>
 
         <div className="flex items-center justify-between">
-          <div className="font-black text-[15px] md:text-lg text-gray-900 tracking-tight">
+          <div className="font-bold tracking-tight" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>
             {article.is_on_sale ? (
-              <div className="flex items-center gap-1.5 md:gap-2">
-                <span className="text-red-500">{Math.round(salePrice!)} DA</span>
-                <span className="text-[10px] md:text-xs text-gray-400 line-through font-medium">{displayPrice} DA</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[15px] md:text-lg" style={{ color: 'var(--wise-dark-green)' }}>{Math.round(salePrice!)} DA</span>
+                <span className="text-[10px] md:text-xs line-through font-medium" style={{ color: 'var(--wise-gray)' }}>{displayPrice} DA</span>
               </div>
             ) : (
-              <span>{displayPrice} DA</span>
+              <span className="text-[15px] md:text-lg">{displayPrice} DA</span>
             )}
           </div>
         </div>

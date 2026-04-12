@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
-import { Heart, ArrowRight } from "lucide-react"
+import { ArrowUpRight, ShoppingBag } from "lucide-react"
 
 export default async function BoutiquePage() {
   const supabase = (await createClient()) as any
@@ -22,33 +22,32 @@ export default async function BoutiquePage() {
     .order("created_at", { ascending: false })
 
   return (
-    <main className="min-h-screen bg-[#F3F4F6] py-6 md:py-10 px-4 md:px-6 font-sans">
+    <main className="min-h-screen bg-white py-6 md:py-10 px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
         
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 grid-flow-row-dense auto-rows-max">
           
-          {/* Bento Block 1: The Header (Spans 2 columns) */}
-          <div className="md:col-span-3 lg:col-span-4 rounded-[2rem] bg-white p-8 md:p-10 flex flex-col justify-center relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-500 min-h-[250px]">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-slate-50/80 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+          {/* Header Card */}
+          <div 
+            className="md:col-span-3 lg:col-span-4 p-8 md:p-10 flex flex-col justify-center relative overflow-hidden min-h-[220px]"
+            style={{ borderRadius: '40px', boxShadow: 'var(--wise-ring)', background: '#ffffff' }}
+          >
+            <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" style={{ backgroundColor: 'rgba(159,232,112,0.08)' }} />
             
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
-                <span className="inline-block py-1.5 px-4 rounded-full bg-slate-100 text-slate-800 text-[11px] font-bold tracking-widest uppercase mb-5">
+                <span 
+                  className="inline-block py-1.5 px-4 rounded-[9999px] text-[11px] font-semibold tracking-wider uppercase mb-5"
+                  style={{ backgroundColor: 'var(--wise-mint)', color: 'var(--wise-dark-green)', fontFeatureSettings: '"calt"' }}
+                >
                   Collection {new Date().getFullYear()}
                 </span>
-                <h1 className="text-4xl md:text-5xl font-black mb-4 text-slate-900 tracking-tight leading-[1.1]">
+                <h1 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight leading-[0.95]" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>
                   Trouvez votre style.
                 </h1>
-                <p className="text-slate-500 max-w-sm text-sm md:text-base">
+                <p className="max-w-sm text-sm md:text-base" style={{ color: 'var(--wise-gray)' }}>
                   Découvrez des pièces soigneusement sélectionnées pour vous démarquer.
                 </p>
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 hover:text-black cursor-pointer w-fit group bg-slate-50 px-5 py-3 rounded-full border border-slate-100 hover:border-slate-200 transition-all">
-                Filtrer par catégories
-                <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm">
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
               </div>
             </div>
           </div>
@@ -56,9 +55,8 @@ export default async function BoutiquePage() {
           {/* Products Loop */}
           {articles && articles.length > 0 ? (
             articles.map((article: any, index: number) => {
-              // Create a varied grid effect
-              const isLarge = index === 3; // Make the 4th product larger (span 2 cols, 2 rows)
-              const isHorizontal = index === 6; // Make the 7th product span 2 cols horizontally
+              const isLarge = index === 3;
+              const isHorizontal = index === 6;
               
               const photo = article.photos?.[0]?.photo_url || null
               const displayPrice = article.sizes?.[0]?.price_override ?? article.base_price
@@ -73,75 +71,88 @@ export default async function BoutiquePage() {
               const hasSizes = article.sizes && article.sizes.length > 0;
               const isSoldOut = hasSizes && totalStock <= 0;
 
-              // Base classes for bento cards
-              let cardClasses = `group flex relative bg-white rounded-[2rem] overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-500 place-self-stretch w-full ${isSoldOut ? 'opacity-80' : ''}`;
-              
+              let spanClasses = "";
               if (isLarge) {
-                cardClasses += " md:col-span-2 md:row-span-2 flex-col";
+                spanClasses = "md:col-span-2 md:row-span-2";
               } else if (isHorizontal) {
-                cardClasses += " md:col-span-2 flex-col md:flex-row items-center";
-              } else {
-                cardClasses += " flex-col";
+                spanClasses = "md:col-span-2";
               }
 
               return (
-                <Link href={`/article/${article.id}`} key={article.id} className={cardClasses}>
+                <Link 
+                  href={`/article/${article.id}`} 
+                  key={article.id} 
+                  className={`group flex flex-col relative overflow-hidden transition-all duration-300 hover:-translate-y-1 place-self-stretch w-full ${spanClasses} ${isSoldOut ? 'opacity-75' : ''}`}
+                  style={{ borderRadius: '30px', boxShadow: 'var(--wise-ring)', background: '#ffffff' }}
+                >
                   
-                  {/* Image Container */}
-                  <div className={`relative flex items-center justify-center p-6 ${isLarge ? 'h-[400px]' : isHorizontal ? 'h-[250px] w-full md:w-1/2' : 'h-[280px]'} ${isSoldOut ? 'bg-slate-100' : 'bg-slate-50'} overflow-hidden`}>
-                    
-                    {/* Background blob for style */}
-                    <div className="absolute inset-0 bg-slate-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
+                  {/* Image */}
+                  <div 
+                    className={`relative flex items-center justify-center overflow-hidden ${isLarge ? 'h-[400px]' : isHorizontal ? 'h-[280px]' : 'h-[280px]'}`}
+                    style={{ backgroundColor: isSoldOut ? '#f2f2f0' : '#fafaf8' }}
+                  >
                     {isSoldOut && (
                       <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/30 backdrop-blur-sm">
-                         <span className="bg-slate-900 text-white px-4 py-2 rounded-xl font-bold tracking-widest uppercase text-xs shadow-lg">
+                         <span 
+                           className="px-5 py-2.5 rounded-[9999px] font-semibold tracking-wider uppercase text-xs"
+                           style={{ backgroundColor: 'var(--wise-black)', color: '#ffffff' }}
+                         >
                             Épuisé
                          </span>
                       </div>
                     )}
                     
                     {article.is_on_sale && !isSoldOut && (
-                       <span className="absolute top-4 left-4 z-10 bg-[#FF6B6B] text-white text-[11px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider shadow-sm">
+                       <span 
+                         className="absolute top-4 left-4 z-10 text-[11px] font-bold px-3.5 py-1.5 rounded-[9999px] uppercase tracking-wider"
+                         style={{ backgroundColor: 'var(--wise-green)', color: 'var(--wise-dark-green)' }}
+                       >
                          -{article.sale_percentage}%
                        </span>
                     )}
 
-                    <button className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/70 backdrop-blur-md rounded-full flex items-center justify-center shadow-sm text-slate-400 group-hover:text-rose-500 hover:scale-110 transition-all">
-                      <Heart className="w-5 h-5" />
-                    </button>
+                    <div 
+                      className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100"
+                      style={{ backgroundColor: 'var(--wise-green)', color: 'var(--wise-dark-green)' }}
+                    >
+                      <ArrowUpRight className="w-5 h-5" />
+                    </div>
 
                     {photo ? (
                       <img 
                         src={photo} 
                         alt={article.title} 
-                        className={`w-full h-full object-contain transition-transform duration-700 ease-out ${isSoldOut ? 'grayscale mix-blend-normal' : 'mix-blend-multiply group-hover:scale-110'}`} 
+                        className={`w-full h-full object-contain p-6 transition-transform duration-700 ease-out ${isSoldOut ? 'grayscale' : 'group-hover:scale-105'}`} 
                       />
                     ) : (
-                       <span className="text-4xl text-slate-300 font-black opacity-20">{article.title.charAt(0)}</span>
+                       <span className="text-4xl font-bold opacity-10" style={{ color: 'var(--wise-black)' }}>{article.title.charAt(0)}</span>
                     )}
                   </div>
 
-                  {/* Content Container */}
-                  <div className={`p-6 md:p-8 flex flex-col justify-end flex-grow ${isHorizontal ? 'w-full md:w-1/2' : ''}`}>
+                  {/* Content */}
+                  <div className={`p-5 md:p-6 flex flex-col justify-end flex-grow`}>
                     {article.category?.name && (
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--wise-gray)', fontFeatureSettings: '"calt"' }}>
                         {article.category.name}
                       </span>
                     )}
                     
-                    <h3 className={`font-bold text-slate-800 line-clamp-2 leading-snug mb-3 ${isLarge ? 'text-2xl' : 'text-lg'}`} dir="auto">
+                    <h3 
+                      className={`font-semibold line-clamp-2 leading-snug mb-4 ${isLarge ? 'text-xl md:text-2xl' : 'text-base md:text-lg'}`} 
+                      style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}
+                      dir="auto"
+                    >
                       {article.title}
                     </h3>
 
-                    <div className="mt-auto pt-4 border-t border-slate-100 flex items-end justify-between">
+                    <div className="mt-auto pt-4 flex items-end justify-between" style={{ borderTop: '1px solid rgba(14,15,12,0.08)' }}>
                       <div>
-                        <span className="text-xs text-slate-400 font-medium block mb-1">Prix</span>
-                        <div className={`font-black tracking-tight text-slate-900 ${isLarge ? 'text-3xl' : 'text-xl'}`}>
+                        <span className="text-[11px] font-medium block mb-1" style={{ color: 'var(--wise-gray)' }}>Prix</span>
+                        <div className={`font-bold tracking-tight ${isLarge ? 'text-2xl md:text-3xl' : 'text-lg md:text-xl'}`} style={{ color: 'var(--wise-black)' }}>
                           {article.is_on_sale ? (
-                            <div className="flex items-center gap-3">
-                              <span className="text-rose-500">{Math.round(salePrice!)} DA</span>
-                              <span className="text-sm text-slate-400 line-through font-medium">{displayPrice} DA</span>
+                            <div className="flex items-center gap-2">
+                              <span style={{ color: 'var(--wise-dark-green)' }}>{Math.round(salePrice!)} DA</span>
+                              <span className="text-xs font-medium line-through" style={{ color: 'var(--wise-gray)' }}>{displayPrice} DA</span>
                             </div>
                           ) : (
                             <span>{displayPrice} DA</span>
@@ -149,8 +160,11 @@ export default async function BoutiquePage() {
                         </div>
                       </div>
                       
-                      <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center group-hover:bg-slate-700 transition-colors shadow-md">
-                        <ArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 group-hover:scale-110"
+                        style={{ backgroundColor: 'var(--wise-green)', color: 'var(--wise-dark-green)' }}
+                      >
+                        <ArrowUpRight className="w-4 h-4" />
                       </div>
                     </div>
                   </div>
@@ -158,12 +172,18 @@ export default async function BoutiquePage() {
               )
             })
           ) : (
-            <div className="col-span-1 md:col-span-3 lg:col-span-4 flex flex-col items-center justify-center py-32 text-center rounded-[2rem] bg-white shadow-sm border border-slate-100">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                <Heart className="w-8 h-8 text-slate-300" />
+            <div 
+              className="col-span-1 md:col-span-3 lg:col-span-4 flex flex-col items-center justify-center py-32 text-center"
+              style={{ borderRadius: '30px', boxShadow: 'var(--wise-ring)' }}
+            >
+              <div 
+                className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
+                style={{ backgroundColor: 'var(--wise-mint)' }}
+              >
+                <ShoppingBag className="w-8 h-8" style={{ color: 'var(--wise-dark-green)' }} />
               </div>
-              <h2 className="text-2xl font-bold mb-3 text-slate-800">Boutique en préparation</h2>
-              <p className="text-slate-500 max-w-sm">
+              <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>Boutique en préparation</h2>
+              <p style={{ color: 'var(--wise-gray)' }} className="max-w-sm">
                 Nos nouveaux articles arrivent très bientôt. Restez connectés !
               </p>
             </div>

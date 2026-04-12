@@ -22,10 +22,10 @@ export default async function StoreLayout({
     .order("position", { ascending: true })
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-bg)] text-[var(--color-text)] font-sans overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen flex flex-col bg-white overflow-x-hidden w-full max-w-full" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>
       <Header settings={settings} categories={categories || []} />
       
-      <main className="flex-1 w-full max-w-full bg-[var(--color-bg)] overflow-x-hidden">
+      <main className="flex-1 w-full max-w-full bg-white overflow-x-hidden">
         {children}
       </main>
 

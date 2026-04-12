@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import { useCartStore } from "@/lib/store/cart"
-import { Button } from "@/components/ui/button"
-import { ShoppingBag, Minus, Plus, ShoppingCart } from "lucide-react"
+import { ShoppingCart, Minus, Plus } from "lucide-react"
 
 export function AddToCartForm({ article }: { article: any }) {
   const { addItem } = useCartStore()
@@ -52,7 +51,10 @@ export function AddToCartForm({ article }: { article: any }) {
 
   if (!article.sizes || article.sizes.length === 0) {
     return (
-      <div className="py-4 rounded-lg bg-red-50 text-red-600 text-center font-medium">
+      <div 
+        className="py-4 rounded-[9999px] text-center font-semibold text-sm"
+        style={{ backgroundColor: 'rgba(208,50,56,0.08)', color: 'var(--wise-danger)' }}
+      >
         Ce produit n'est pas disponible pour le moment.
       </div>
     )
@@ -62,20 +64,26 @@ export function AddToCartForm({ article }: { article: any }) {
     <div className="space-y-6">
       {/* Sizes */}
       <div className="space-y-3">
-         <h3 className="font-medium">Taille</h3>
+         <h3 className="font-semibold text-sm" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>Taille</h3>
          <div className="flex flex-wrap gap-2">
            {article.sizes.map((size: any) => {
              const hasStock = size.colors?.some((c:any) => c.quantity > 0)
+             const isSelected = selectedSize?.id === size.id
              return (
                <button
                  key={size.id}
                  onClick={() => handleSizeChange(size)}
                  disabled={!hasStock}
-                 className={`
-                   px-4 py-2 border rounded-xl text-sm font-medium transition-colors
-                   ${!hasStock ? 'opacity-50 cursor-not-allowed bg-muted line-through' : ''}
-                   ${selectedSize?.id === size.id ? 'border-primary bg-primary text-primary-foreground' : 'hover:border-primary'}
-                 `}
+                 className="px-5 py-2.5 rounded-[9999px] text-sm font-semibold transition-all duration-200"
+                 style={{
+                   backgroundColor: isSelected ? 'var(--wise-green)' : 'rgba(22,51,0,0.05)',
+                   color: isSelected ? 'var(--wise-dark-green)' : 'var(--wise-black)',
+                   opacity: !hasStock ? 0.4 : 1,
+                   cursor: !hasStock ? 'not-allowed' : 'pointer',
+                   textDecoration: !hasStock ? 'line-through' : 'none',
+                   transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                   fontFeatureSettings: '"calt"',
+                 }}
                >
                  {size.size_label}
                </button>
@@ -87,75 +95,100 @@ export function AddToCartForm({ article }: { article: any }) {
       {/* Colors */}
       {selectedSize?.colors && selectedSize.colors.length > 0 && (
          <div className="space-y-3">
-           <h3 className="font-medium">Couleur: <span className="text-muted-foreground ml-1">{selectedColor?.color_name || ''}</span></h3>
-           <div className="flex flex-wrap gap-2.5">
-             {selectedSize.colors.map((color: any) => (
-                <button
-                  key={color.id}
-                  onClick={() => setSelectedColor(color)}
-                  disabled={color.quantity === 0}
-                  className={`
-                    w-9 h-9 md:w-11 md:h-11 rounded-full border-2 transition-all p-0.5 md:p-1
-                    ${color.quantity === 0 ? 'opacity-50 cursor-not-allowed hidden' : ''}
-                    ${selectedColor?.id === color.id ? 'border-primary shadow-[0_0_10px_rgba(0,0,0,0.1)] scale-110' : 'border-transparent hover:border-gray-300'}
-                  `}
-                  title={color.color_name}
-                >
-                  <div 
-                    className="w-full h-full rounded-full border border-black/10" 
-                    style={{ backgroundColor: color.color_hex || '#ccc' }} 
-                  />
-                </button>
-             ))}
+           <h3 className="font-semibold text-sm" style={{ color: 'var(--wise-black)', fontFeatureSettings: '"calt"' }}>
+             Couleur: <span style={{ color: 'var(--wise-gray)' }} className="ml-1 font-normal">{selectedColor?.color_name || ''}</span>
+           </h3>
+           <div className="flex flex-wrap gap-3">
+             {selectedSize.colors.map((color: any) => {
+               const isSelected = selectedColor?.id === color.id
+               return (
+                 <button
+                   key={color.id}
+                   onClick={() => setSelectedColor(color)}
+                   disabled={color.quantity === 0}
+                   className="rounded-full transition-all duration-200"
+                   style={{
+                     width: isSelected ? '44px' : '40px',
+                     height: isSelected ? '44px' : '40px',
+                     padding: '3px',
+                     border: isSelected ? '2px solid var(--wise-green)' : '2px solid transparent',
+                     opacity: color.quantity === 0 ? 0.3 : 1,
+                     display: color.quantity === 0 ? 'none' : 'block',
+                     transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                   }}
+                   title={color.color_name}
+                 >
+                   <div 
+                     className="w-full h-full rounded-full" 
+                     style={{ 
+                       backgroundColor: color.color_hex || '#ccc',
+                       boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                     }} 
+                   />
+                 </button>
+               )
+             })}
            </div>
          </div>
       )}
 
       {/* Quantity & Action */}
-      <div className="pt-4 pb-8 flex flex-col gap-3">
-        {/* Qty & Add to cart row */}
+      <div className="pt-4 pb-8 flex flex-col gap-4">
         <div className="flex items-center gap-3 w-full">
           {/* Qty selector */}
-          <div className="flex items-center justify-between border-2 border-gray-100 rounded-full px-1.5 h-[52px] md:h-[56px] w-[110px] md:w-[130px] shrink-0 bg-white shadow-sm">
+          <div 
+            className="flex items-center justify-between px-1.5 h-[52px] md:h-[56px] w-[120px] md:w-[130px] shrink-0"
+            style={{ borderRadius: '9999px', boxShadow: 'var(--wise-ring)', background: '#ffffff' }}
+          >
             <button 
                onClick={() => setQuantity(Math.max(1, quantity - 1))}
                disabled={quantity <= 1}
-               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-30"
+               className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 hover:bg-[rgba(211,242,192,0.4)] disabled:opacity-30"
             >
-               <Minus className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
+               <Minus className="w-4 h-4" style={{ color: 'var(--wise-black)' }} />
             </button>
-            <span className="font-bold text-base md:text-lg text-gray-900 w-8 text-center">{quantity}</span>
+            <span className="font-bold text-base md:text-lg w-8 text-center" style={{ color: 'var(--wise-black)' }}>{quantity}</span>
             <button 
                onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
                disabled={quantity >= maxStock}
-               className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-30"
+               className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 hover:bg-[rgba(211,242,192,0.4)] disabled:opacity-30"
             >
-               <Plus className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
+               <Plus className="w-4 h-4" style={{ color: 'var(--wise-black)' }} />
             </button>
           </div>
 
-          {/* Add to cart button */}
-          <Button 
-            size="lg"
+          {/* Add to cart button — Wise Green Pill */}
+          <button 
             onClick={handleAddToCart}
             disabled={!isAvailable}
-            className="flex-1 h-[52px] md:h-[56px] rounded-full text-[15px] md:text-lg font-bold shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:-translate-y-[1px] transition-all active:scale-[0.98]"
+            className="flex-1 h-[52px] md:h-[56px] inline-flex items-center justify-center gap-2 font-semibold text-[15px] md:text-base transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              borderRadius: '9999px',
+              backgroundColor: isAvailable ? 'var(--wise-green)' : 'var(--wise-light-surface)',
+              color: isAvailable ? 'var(--wise-dark-green)' : 'var(--wise-gray)',
+              fontFeatureSettings: '"calt"',
+              border: 'none',
+            }}
+            onMouseEnter={(e) => { if (isAvailable) e.currentTarget.style.transform = 'scale(1.03)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)' }}
+            onMouseDown={(e) => { if (isAvailable) e.currentTarget.style.transform = 'scale(0.97)' }}
+            onMouseUp={(e) => { if (isAvailable) e.currentTarget.style.transform = 'scale(1.03)' }}
           >
-          {isAvailable ? (
-            <>
-              <ShoppingCart className="mr-2 w-5 h-5" />
-              Ajouter au panier
-            </>
-          ) : (
-            'Rupture de stock'
-          )}
-        </Button>
+            {isAvailable ? (
+              <>
+                <ShoppingCart className="w-5 h-5" />
+                Ajouter au panier
+              </>
+            ) : (
+              'Rupture de stock'
+            )}
+          </button>
         </div>
 
-       {/* Small hint */}
+       {/* Low stock warning */}
        {isAvailable && maxStock <= 5 && (
-         <p className="text-orange-500 text-sm font-medium flex items-center gap-2">
-           <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+         <p className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--wise-dark-green)' }}>
+           <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--wise-green)' }} />
            Plus que {maxStock} article(s) en stock !
          </p>
        )}
