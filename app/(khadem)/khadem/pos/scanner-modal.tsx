@@ -47,13 +47,12 @@ export function ScannerModal({
     const timer = setTimeout(() => {
       async function startScanner() {
         try {
-          // Demande spécifiquement la caméra arrière ("environment") au lieu de "video: true" (qui donne souvent selfie)
-          await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+          await navigator.mediaDevices.getUserMedia({ video: true })
 
           if (!mounted) return
 
           const html5QrCode = new Html5Qrcode(readerId, {
-            formatsToSupport: [   // L'endroit correct wla fast-scan
+            formatsToSupport: [
               Html5QrcodeSupportedFormats.EAN_13,
               Html5QrcodeSupportedFormats.CODE_128,
               Html5QrcodeSupportedFormats.CODE_39,
@@ -62,32 +61,15 @@ export function ScannerModal({
             ],
             verbose: false,
             experimentalFeatures: {
-              useBarCodeDetectorIfSupported: true // Cela utilise le scanner natif du téléphone (ultra rapide) s'il est supporté
+              useBarCodeDetectorIfSupported: true 
             }
           })
           html5QrCodeRef.current = html5QrCode
 
-          // L'astuce la plus importante : Forcer la HD sur le téléphone !!
-          // Sans ça, les téléphones ouvrent la caméra en basse qualité (640x480) 
-          // et ça tue les petites lignes des codes-barres.
-
-          // Configuration optimale pour les codes-barres 1D (très rapide)
           await html5QrCode.start(
-            { facingMode: "environment" }, // Le premier paramètre ne doit avoir qu'une seule clé ("facingMode" ou "deviceId") !
+            { facingMode: "environment" },
             {
-              fps: 15,
-              videoConstraints: {
-                width: { min: 640, ideal: 1280, max: 1920 }, // Demande la HD (1080p ou 720p)
-                height: { min: 480, ideal: 720, max: 1080 },
-                advanced: [{ focusMode: "continuous" } as any] // Force l'autofocus
-              },
-              // Une boîte intelligente qui s'adapte à la taille de l'écran du tel
-              qrbox: (viewfinderWidth, viewfinderHeight) => {
-                return {
-                  width: Math.min(300, Math.floor(viewfinderWidth * 0.85)), // Prend 85% de la largeur max
-                  height: 150
-                };
-              },
+              fps: 10,
               disableFlip: false 
             },
             (decodedText) => {
