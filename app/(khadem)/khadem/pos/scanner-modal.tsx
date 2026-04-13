@@ -52,6 +52,13 @@ export function ScannerModal({
           if (!mounted) return
 
           const html5QrCode = new Html5Qrcode(readerId, {
+            formatsToSupport: [   // L'endroit correct wla fast-scan
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.CODE_128,
+              Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.EAN_8,
+              Html5QrcodeSupportedFormats.UPC_A
+            ],
             verbose: false,
             experimentalFeatures: {
               useBarCodeDetectorIfSupported: true // Cela utilise le scanner natif du téléphone (ultra rapide) s'il est supporté
@@ -64,13 +71,6 @@ export function ScannerModal({
             { facingMode: "environment" },
             {
               fps: 10, // Retour à 10 FPS : donne plus de temps au décodeur pour lire les petites lignes du code-barres
-              formatsToSupport: [   // On lui dit de chercher UNIQUEMENT ces formats, ça le rend 10x plus rapide/concentré
-                Html5QrcodeSupportedFormats.EAN_13,
-                Html5QrcodeSupportedFormats.CODE_128,
-                Html5QrcodeSupportedFormats.CODE_39,
-                Html5QrcodeSupportedFormats.EAN_8,
-                Html5QrcodeSupportedFormats.UPC_A
-              ],
               qrbox: { width: 300, height: 180 }, // Raja3na l'moraba3 w drah kbir (300x180) ysa3ed l'code barre
               disableFlip: false 
             },
