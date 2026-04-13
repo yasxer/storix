@@ -1,9 +1,11 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function createOrder(data: any, items: any[]) {
   const supabase = (await createClient()) as any
+  const adminClient = createAdminClient()
 
   // 1. Get delivery fee details to verify
   const { data: feeData } = await supabase
@@ -21,7 +23,7 @@ export async function createOrder(data: any, items: any[]) {
   const total_price = itemsTotal + delivery_fee
 
   // 2. Insert Order
-  const { data: order, error: orderErr } = await supabase
+  const { data: order, error: orderErr } = await adminClient
     .from("orders")
     .insert({
       client_name: data.client_name,
@@ -50,7 +52,7 @@ export async function createOrder(data: any, items: any[]) {
     unit_price: item.unit_price
   }))
 
-  const { error: itemsErr } = await supabase
+  const { error: itemsErr } = await adminClient
     .from("order_items")
     .insert(orderItemsData)
 
