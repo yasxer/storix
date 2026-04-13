@@ -47,7 +47,8 @@ export function ScannerModal({
     const timer = setTimeout(() => {
       async function startScanner() {
         try {
-          await navigator.mediaDevices.getUserMedia({ video: true })
+          // Demande spécifiquement la caméra arrière ("environment") au lieu de "video: true" (qui donne souvent selfie)
+          await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
 
           if (!mounted) return
 
