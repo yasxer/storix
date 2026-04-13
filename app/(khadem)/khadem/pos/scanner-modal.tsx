@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Html5Qrcode } from 'html5-qrcode'
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import { Button } from '@/components/ui/button'
 import { X, Camera } from 'lucide-react'
 
@@ -58,14 +58,20 @@ export function ScannerModal({
           })
           html5QrCodeRef.current = html5QrCode
 
-          // On configure la caméra avec autofocus continu et une fréquence d'images plus élevée
+          // Configuration optimale pour les codes-barres 1D (très rapide)
           await html5QrCode.start(
             { facingMode: "environment" },
             {
-              fps: 30, // On a augmenté de 10 à 30 pour voir plus d'images par seconde
-              qrbox: { width: 320, height: 150 }, // On a élargi la zone pour les codes barres
-              aspectRatio: 1.0,
-              disableFlip: false // Pratique si la caméra est à l'envers ou miroirs
+              fps: 10, // Retour à 10 FPS : donne plus de temps au décodeur pour lire les petites lignes du code-barres
+              formatsToSupport: [   // On lui dit de chercher UNIQUEMENT ces formats, ça le rend 10x plus rapide/concentré
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.CODE_39,
+                Html5QrcodeSupportedFormats.EAN_8,
+                Html5QrcodeSupportedFormats.UPC_A
+              ],
+              qrbox: { width: 300, height: 180 }, // Raja3na l'moraba3 w drah kbir (300x180) ysa3ed l'code barre
+              disableFlip: false 
             },
             (decodedText) => {
               if (!mounted) return
