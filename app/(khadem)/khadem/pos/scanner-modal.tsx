@@ -66,12 +66,28 @@ export function ScannerModal({
           })
           html5QrCodeRef.current = html5QrCode
 
+          // L'astuce la plus importante : Forcer la HD sur le téléphone !!
+          // Sans ça, les téléphones ouvrent la caméra en basse qualité (640x480) 
+          // et ça tue les petites lignes des codes-barres.
+          const cameraConfig = { 
+            facingMode: "environment",
+            width: { ideal: 1280, max: 1920 }, // Demande la HD (1080p ou 720p)
+            height: { ideal: 720, max: 1080 },
+            advanced: [{ focusMode: "continuous" } as any] // Force l'autofocus
+          }
+
           // Configuration optimale pour les codes-barres 1D (très rapide)
           await html5QrCode.start(
-            { facingMode: "environment" },
+            cameraConfig,
             {
-              fps: 10, // Retour à 10 FPS : donne plus de temps au décodeur pour lire les petites lignes du code-barres
-              qrbox: { width: 300, height: 180 }, // Raja3na l'moraba3 w drah kbir (300x180) ysa3ed l'code barre
+              fps: 15, 
+              // Une boîte intelligente qui s'adapte à la taille de l'écran du tel
+              qrbox: (viewfinderWidth, viewfinderHeight) => {
+                return {
+                  width: Math.min(300, Math.floor(viewfinderWidth * 0.85)), // Prend 85% de la largeur max
+                  height: 150
+                };
+              },
               disableFlip: false 
             },
             (decodedText) => {
