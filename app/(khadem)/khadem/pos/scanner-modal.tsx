@@ -52,6 +52,7 @@ export function ScannerModal({
           if (!mounted) return
 
           const html5QrCode = new Html5Qrcode(readerId, {
+            verbose: false,
             experimentalFeatures: {
               useBarCodeDetectorIfSupported: true // Cela utilise le scanner natif du téléphone (ultra rapide) s'il est supporté
             }
