@@ -51,15 +51,21 @@ export function ScannerModal({
 
           if (!mounted) return
 
-          const html5QrCode = new Html5Qrcode(readerId)
+          const html5QrCode = new Html5Qrcode(readerId, {
+            experimentalFeatures: {
+              useBarCodeDetectorIfSupported: true // Cela utilise le scanner natif du téléphone (ultra rapide) s'il est supporté
+            }
+          })
           html5QrCodeRef.current = html5QrCode
 
+          // On configure la caméra avec autofocus continu et une fréquence d'images plus élevée
           await html5QrCode.start(
             { facingMode: "environment" },
             {
-              fps: 10,
-              qrbox: { width: 250, height: 150 },
-              aspectRatio: 1.0
+              fps: 30, // On a augmenté de 10 à 30 pour voir plus d'images par seconde
+              qrbox: { width: 320, height: 150 }, // On a élargi la zone pour les codes barres
+              aspectRatio: 1.0,
+              disableFlip: false // Pratique si la caméra est à l'envers ou miroirs
             },
             (decodedText) => {
               if (!mounted) return

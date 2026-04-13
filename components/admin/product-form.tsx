@@ -8,10 +8,11 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, Plus, Trash2, UploadCloud, X, RefreshCw } from "lucide-react"
+import { Loader2, Plus, Trash2, UploadCloud, X, RefreshCw, ScanLine } from "lucide-react"
 import { useDropzone } from "react-dropzone"
 import JsBarcode from "jsbarcode"
 import { v4 as uuidv4 } from "uuid"
+import { ScannerModal } from "@/app/(khadem)/khadem/pos/scanner-modal"
 
 // Types
 type Category = { id: string; name: string }
@@ -56,6 +57,7 @@ export function ProductForm({ categories, models, initialData }: { categories: C
   const [localCategories, setLocalCategories] = useState(categories)
   const [localModels, setLocalModels] = useState(models)
   const [photos, setPhotos] = useState<File[]>([])
+  const [isScanning, setIsScanning] = useState(false)
   const [existingPhotos, setExistingPhotos] = useState<{ id: string; photo_url: string; position: number }[]>(
     initialData?.existingPhotos || []
   )
@@ -367,21 +369,44 @@ export function ProductForm({ categories, models, initialData }: { categories: C
 
       {/* Inventory & Barcode */}
       <div className="space-y-4 pt-4 border-t border-[var(--color-border)]">
-        <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Inventory & Scanning</h3>
+        <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Inventaire & Code-barres</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Low Stock Threshold</label>
+            <label className="block text-sm font-medium mb-1">Seuil de stock faible</label>
             <Input type="number" {...form.register("low_stock_threshold")} className="bg-white" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Barcode (EAN/UPC)</label>
+            <label className="block text-sm font-medium mb-1">Code-barres du produit</label>
             <div className="flex items-center gap-2">
-              <Input {...form.register("barcode")} className="bg-white flex-1" placeholder="Scan or enter code" />
+              <Input 
+                {...form.register("barcode")} 
+                className="bg-white flex-1" 
+                placeholder="Entrer code ou utiliser scan" 
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    // Prevent form submission when physical scanner sends "Enter"
+                    e.preventDefault();
+                  }
+                }}
+              />
+              <Button type="button" variant="outline" onClick={() => setIsScanning(true)} className="bg-slate-50">
+                <ScanLine className="h-4 w-4 mr-2" /> Scanner
+              </Button>
               <Button type="button" variant="secondary" onClick={generateBarcode}>
-                <RefreshCw className="h-4 w-4 mr-2" /> Gen
+                <RefreshCw className="h-4 w-4 mr-2" /> Générer
               </Button>
             </div>
+            {isScanning && (
+              <ScannerModal
+                isOpen={isScanning}
+                onClose={() => setIsScanning(false)}
+                onScan={(result) => {
+                  form.setValue("barcode", result)
+                  setIsScanning(false)
+                }}
+              />
+            )}
             {form.watch("barcode") && (
               <div className="mt-2 p-4 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg flex justify-center">
                 <svg id="barcode-preview"></svg>
