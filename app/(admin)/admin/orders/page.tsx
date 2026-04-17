@@ -35,13 +35,15 @@ export default async function OrdersPage() {
         </div>
       </div>
 
-      <div className="bg-white border border-[var(--color-border)] rounded-lg shadow-sm">
-        <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-4">
-            <span className="text-sm text-gray-500">All Orders ({orders?.length || 0})</span>
+      <div className="bg-white md:border border-gray-100 md:rounded-xl shadow-sm">
+        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-gray-900">All Orders ({orders?.length || 0})</h2>
         </div>
-        <div className="overflow-x-auto">
-            <table className="w-full min-w-[1000px] whitespace-nowrap text-sm text-left">
-            <thead className="bg-[#f8f9fa] text-[var(--color-text-muted)] text-xs uppercase font-semibold border-b border-[var(--color-border)]">
+        
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm text-left">
+            <thead className="bg-[#f8f9fa] text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
               <tr>
                 <th className="px-6 py-3 font-medium">Order Details</th>
                 <th className="px-6 py-3 font-medium">Client Info</th>
@@ -51,10 +53,10 @@ export default async function OrdersPage() {
                 <th className="px-6 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--color-border)] text-[var(--color-text)]">
+            <tbody className="divide-y divide-gray-100 text-gray-700">
               {orders?.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 bg-white">
                     No orders have been placed yet.
                   </td>
                 </tr>
@@ -91,6 +93,58 @@ export default async function OrdersPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50 rounded-b-xl border-t border-gray-100">
+          {(!orders || orders.length === 0) ? (
+            <div className="p-8 text-center text-gray-500 bg-white rounded-2xl border border-gray-100">
+              No orders have been placed yet.
+            </div>
+          ) : (
+            orders.map((order) => (
+               <div key={order.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3 relative transition-all group">
+                  <div className="flex justify-between items-start">
+                     <div>
+                       <h3 className="font-bold text-gray-900 text-sm">{order.client_name} {order.client_lastname}</h3>
+                       <div className="text-[11px] font-bold text-gray-400 mt-0.5">
+                         {order.phone}
+                       </div>
+                     </div>
+                     <div className="flex flex-col items-end">
+                       <Badge className={`capitalize text-[10px] px-2 py-0 h-5 border-none font-bold ${statusColors[order.status] || "bg-gray-100 text-gray-800"}`} variant="outline">
+                         {order.status}
+                       </Badge>
+                       <span className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">
+                         {format(new Date(order.created_at), "dd MMM")}
+                       </span>
+                     </div>
+                  </div>
+                  
+                  <div className="flex items-end justify-between border-t border-gray-100 pt-3 mt-1">
+                     <div className="flex flex-col gap-1.5">
+                        <div className="font-bold text-[13px] text-[var(--wise-dark-green)] hover:underline cursor-pointer flex items-center gap-1.5">
+                          #{order.id.slice(0, 8)} 
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 inline-block w-max">
+                          {order.wilaya} • {order.delivery_type === "domicile" ? "To Door" : "To Desk"}
+                        </span>
+                     </div>
+                     <div className="text-right">
+                        <span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Total</span>
+                        <div className="flex flex-col">
+                           <span className="font-black text-[var(--wise-dark-green)] text-sm leading-none">{order.total_price.toLocaleString()} DA</span>
+                           <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">+{order.delivery_fee.toLocaleString()} DA Ship</span>
+                        </div>
+                     </div>
+                  </div>
+                  <div className="absolute -top-3 right-0 opacity-0 pointer-events-none">
+                     {/* Render order action but invisible so server action code generates */}
+                     <OrderRowActions order={order} />
+                  </div>
+               </div>
+            ))
+          )}
         </div>
       </div>
     </div>

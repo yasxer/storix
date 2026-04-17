@@ -1,1 +1,0 @@
-const fs = require('fs'); let code = fs.readFileSync('FIX_SUPABASE_TWICE.sql', 'utf8'); code = code.replace(/\\$ \\$/g, 'FIX_SUPABASE_TWICE.sqlFIX_SUPABASE_TWICE.sql'); fs.writeFileSync('FIX_SUPABASE_TWICE.sql', code);

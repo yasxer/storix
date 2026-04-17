@@ -54,10 +54,10 @@ export default async function StockPage({
         </div>
       </div>
 
-      <div className="bg-white border border-[var(--color-border)] rounded-lg shadow-sm">
-        <div className="p-4 border-b border-[var(--color-border)] flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full text-[var(--color-text)]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-text-muted)]" />
+      <div className="bg-white md:border border-gray-100 md:rounded-xl shadow-sm">
+        <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="relative w-full text-gray-900">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <form action="/admin/stock" method="GET">
               <Input
                 type="text"
@@ -70,7 +70,7 @@ export default async function StockPage({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div>
           <StockTable articles={articles || []} />
         </div>
       </div>

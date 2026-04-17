@@ -32,10 +32,11 @@ export default async function HistoryPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-[var(--color-border)] rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="bg-white md:border border-gray-100 md:rounded-xl shadow-sm overflow-hidden">
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto w-full">
             <table className="w-full text-sm text-left">
-              <thead className="bg-[#f8f9fa] text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
+              <thead className="bg-[#f8f9fa] text-gray-500 text-xs uppercase font-semibold border-b border-gray-100">
                 <tr>
                   <th className="px-6 py-3 font-medium">Session ID</th>
                   <th className="px-6 py-3 font-medium">Date</th>
@@ -44,7 +45,7 @@ export default async function HistoryPage() {
                   <th className="px-6 py-3 font-medium text-right">Actions</th> 
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--color-border)] text-[var(--color-text)]">
+              <tbody className="divide-y divide-gray-100 text-gray-700">
                 {shifts?.map((shift: any) => (
                   <tr key={shift.id} className="hover:bg-[#f8f9fa] transition-colors">
                     <td className="px-6 py-4 font-mono text-xs text-gray-500">  
@@ -62,7 +63,7 @@ export default async function HistoryPage() {
                           Closed
                         </Badge>
                       ) : (
-                        <Badge className="bg-[var(--color-success)] text-white border-transparent">
+                        <Badge className="bg-[var(--wise-mint)] text-[var(--wise-dark-green)] border-none">
                           Active (Open)
                         </Badge>
                       )}
@@ -93,6 +94,58 @@ export default async function HistoryPage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50 rounded-b-xl border-t border-gray-100">
+             {(!shifts || shifts.length === 0) ? (
+                <div className="p-8 text-center text-gray-500 bg-white rounded-2xl border border-gray-100">
+                   No daily shifts recorded yet.
+                </div>
+             ) : (
+                shifts.map((shift: any) => (
+                   <div key={shift.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
+                      <div className="flex justify-between items-start">
+                         <div>
+                            <div className="text-[13px] font-bold text-[var(--wise-dark-green)] block mb-0.5 uppercase tracking-wider">Shift Date</div>
+                            <h3 className="font-black text-gray-900 text-lg leading-tight">{format(new Date(shift.date), "dd MMM")}</h3>
+                         </div>
+                         <div className="flex flex-col items-end gap-1.5">
+                            {shift.is_closed ? (
+                              <Badge variant="outline" className="text-[10px] px-2 h-5 text-gray-500 bg-gray-50 border-gray-200 font-bold tracking-widest uppercase">
+                                Closed
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-[var(--wise-mint)] text-[var(--wise-dark-green)] text-[10px] px-2 h-5 border-none font-bold tracking-widest uppercase">
+                                Active (Open)
+                              </Badge>
+                            )}
+                            <span className="font-mono text-[10px] font-bold text-gray-400">
+                              #{shift.id.slice(0, 8)}
+                            </span>
+                         </div>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-xl p-3 flex justify-between items-center border border-gray-100">
+                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Khadem</span>
+                         <span className="font-bold text-sm text-gray-900">{shift.profiles?.full_name || "Unknown"}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                         <div>
+                            {shift.is_closed && (
+                               <ReopenShiftButton sessionId={shift.id} isClosed={shift.is_closed} />
+                            )}
+                         </div>
+                         <Link href={`/admin/history/sessions/${shift.id}`}>
+                            <Button variant="outline" size="sm" className="h-8 text-[11px] font-bold text-[var(--wise-dark-green)] border-gray-200 hover:border-[var(--wise-mint)] hover:bg-[var(--wise-mint)]/10 transition-colors">
+                               View Day <Eye className="w-3.5 h-3.5 ml-1" />
+                            </Button>
+                         </Link>
+                      </div>
+                   </div>
+                ))
+             )}
           </div>
         </div>
       </div>

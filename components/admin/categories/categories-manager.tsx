@@ -173,7 +173,7 @@ export function CategoriesManager({ categories }: { categories: any[] }) {
          </Dialog>
       </div>
 
-      <div className="overflow-x-auto w-full">
+      <div className="hidden md:block overflow-x-auto w-full">
          <Table>
            <TableHeader className="bg-gray-50">
              <TableRow>
@@ -233,6 +233,52 @@ export function CategoriesManager({ categories }: { categories: any[] }) {
              ))}
            </TableBody>
          </Table>
+      </div>
+
+      {/* Mobile Cards View */}
+      <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50 rounded-b-xl border-t border-gray-100">
+         {categories.length === 0 && (
+           <div className="p-8 text-center text-gray-500 bg-white rounded-2xl border border-gray-100">
+             Aucune catégorie trouvée.
+           </div>
+         )}
+         {categories.map((cat) => (
+           <div key={cat.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex gap-4">
+              <div className="w-14 h-14 shrink-0 rounded-2xl border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden">
+                 {cat.image_url ? <img src={cat.image_url} alt="" className="w-full h-full object-contain p-1.5 mix-blend-multiply" /> : <PackageOpen className="w-6 h-6 text-gray-300" />}
+              </div>
+              <div className="flex-1 flex flex-col justify-center min-w-0">
+                 <div className="flex justify-between items-start mb-1">
+                    <h3 className="font-bold text-gray-900 text-sm truncate pr-2">{cat.name}</h3>
+                    <div className="flex items-center gap-1 shrink-0">
+                       <Button variant="ghost" size="icon" onClick={() => openEdit(cat)} className="h-7 w-7 text-blue-600 bg-blue-50 rounded-lg">
+                          <Edit className="w-3.5 h-3.5" />
+                       </Button>
+                       <Button variant="ghost" size="icon" onClick={() => handleDeleteCategory(cat.id, cat.articleCount)} disabled={cat.articleCount > 0} className="h-7 w-7 text-red-600 bg-red-50 rounded-lg disabled:opacity-50">
+                          <Trash2 className="w-3.5 h-3.5" />
+                       </Button>
+                    </div>
+                 </div>
+                 
+                 <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                      {cat.articleCount} articles
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-2 py-0.5 rounded border border-gray-100">
+                      {cat.models?.length || 0} modèles
+                    </span>
+                 </div>
+                 
+                 <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+                    <Link href={`/admin/categories/${cat.id}`} className="w-full">
+                       <Button variant="outline" size="sm" className="w-full h-8 text-[11px] font-bold text-[var(--wise-dark-green)] border-gray-200 hover:border-[var(--wise-mint)] hover:bg-[var(--wise-mint)]/10 transition-colors">
+                          Gérer les Modèles <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                       </Button>
+                    </Link>
+                 </div>
+              </div>
+           </div>
+         ))}
       </div>
     </div>
   )

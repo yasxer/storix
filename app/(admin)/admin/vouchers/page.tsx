@@ -34,15 +34,16 @@ export default async function VouchersPage() {
           </p>
         </div>
         <Link href="/admin/vouchers/new">
-          <Button className="flex items-center gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]">
-            <Plus className="h-4 w-4" />
+          <Button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--wise-dark-green)] hover:opacity-90 text-[var(--wise-mint)] rounded-xl py-6 sm:py-2">
+            <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
             New Voucher (Bon d'Achat)
           </Button>
         </Link>
       </div>
 
-      <div className="bg-white border border-[var(--color-border)] rounded-lg shadow-sm">
-        <div className="overflow-x-auto">
+      <div className="bg-white md:border border-[var(--color-border)] md:rounded-xl shadow-sm">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-[#f8f9fa] text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
               <tr>
@@ -92,6 +93,57 @@ export default async function VouchersPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50 rounded-b-xl border-t border-gray-100">
+          {(!vouchers || vouchers.length === 0) ? (
+            <div className="p-8 text-center text-[var(--color-text-muted)] bg-white rounded-2xl border border-[var(--color-border)]">
+              No purchase vouchers yet. Click "New Voucher" to add stock.
+            </div>
+          ) : (
+            vouchers.map((voucher: any) => {
+              const totalQty = voucher.purchase_voucher_items.reduce((sum: number, item: any) => sum + item.quantity, 0)
+              const articleCount = new Set(voucher.purchase_voucher_items.map((i: any) => i.articles?.title)).size
+              
+              return (
+                <div key={voucher.id} className="bg-white rounded-2xl p-4 shadow-sm border border-[var(--color-border)] flex flex-col gap-3">
+                   <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-bold text-gray-900 text-[13px] leading-tight flex items-center gap-2">
+                          <span className="truncate">{voucher.notes || "Unnamed Receipt"}</span>
+                        </div>
+                        <div className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-wider">
+                          {format(new Date(voucher.created_at), "dd MMM yyyy, HH:mm")}
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 border border-[var(--color-border)] px-2 py-0.5 rounded-md flex items-center gap-1.5 shrink-0">
+                         <span className="text-[10px] uppercase font-bold text-gray-500">By</span>
+                         <span className="text-[10px] font-black">{voucher.profiles?.full_name || "Admin"}</span>
+                      </div>
+                   </div>
+
+                   <div className="flex gap-2">
+                      <div className="flex-1 bg-gray-50 rounded-xl p-2.5 border border-[var(--color-border)] flex flex-col justify-center">
+                         <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">Products</span>
+                         <span className="font-black text-gray-900 text-xs">{articleCount} unique</span>
+                      </div>
+                      <div className="flex-1 bg-[var(--wise-mint)]/20 rounded-xl p-2.5 border border-[var(--wise-mint)] flex flex-col justify-center text-right border-opacity-50">
+                         <span className="text-[9px] font-bold text-[var(--wise-dark-green)] uppercase tracking-widest mb-0.5 opacity-60">Qty Added</span>
+                         <span className="font-black text-[var(--wise-dark-green)] text-xs">+{totalQty} units</span>
+                      </div>
+                   </div>
+
+                   <div className="flex items-center justify-between mt-1 pt-3 border-t border-[var(--color-border)]">
+                      <span className="font-mono text-[10px] font-black text-gray-300">
+                        REF: {voucher.id.slice(0, 8)}
+                      </span>
+                      <VoucherRowActions voucher={voucher} />
+                   </div>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
     </div>

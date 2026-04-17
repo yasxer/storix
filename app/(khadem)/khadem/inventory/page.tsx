@@ -56,11 +56,11 @@ export default async function InventoryHubPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Products Card */}
-        <div className="group relative border border-gray-200/60 rounded-[2rem] p-8 bg-white shadow-sm hover:shadow-xl hover:border-[var(--color-primary)]/20 transition-all duration-300 flex flex-col h-full overflow-hidden text-left">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary)]/5 rounded-full blur-[60px] group-hover:bg-[var(--color-primary)]/10 transition-colors -mr-20 -mt-20"></div>
+        <div className="group relative border border-gray-100 rounded-3xl p-6 sm:p-8 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[var(--wise-mint)] transition-all duration-300 flex flex-col h-full overflow-hidden text-left">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--wise-mint)]/30 rounded-full blur-[60px] group-hover:bg-[var(--wise-mint)]/60 transition-colors -mr-20 -mt-20"></div>
           
-          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-gray-50 to-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded-2xl flex items-center justify-center mb-6 text-[var(--color-primary)] shadow-sm group-hover:scale-110 transition-transform">
-            <PackagePlus size={36} className="stroke-[1.5]" />
+          <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-50 to-[var(--wise-mint)]/30 border border-gray-100 rounded-2xl flex items-center justify-center mb-6 text-[var(--wise-dark-green)] shadow-sm group-hover:scale-110 transition-transform">
+            <PackagePlus size={32} className="stroke-[2] sm:w-[36px] sm:h-[36px] sm:stroke-[1.5]" />
           </div>
           
           <h2 className="relative z-10 text-2xl font-bold text-gray-900 mb-3 tracking-tight">Product Catalog</h2>
@@ -75,19 +75,19 @@ export default async function InventoryHubPage() {
               </Button>
             </Link>
             <Link href="/khadem/products/new" className="flex-1">
-              <Button className="w-full rounded-full h-12 font-bold bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white shadow-md hover:shadow-lg transition-all gap-2">
-                Add Product <ArrowRight size={16} />
+              <Button className="w-full rounded-full h-14 font-bold bg-[var(--wise-dark-green)] hover:opacity-90 text-[var(--wise-mint)] shadow-md hover:shadow-lg transition-all gap-2 text-base">
+                Add Product <ArrowRight size={18} />
               </Button>
             </Link>
           </div>
         </div>
 
         {/* Vouchers / Bons d'Achat Card */}
-        <div className="group relative border border-gray-200/60 rounded-[2rem] p-8 bg-white shadow-sm hover:shadow-xl hover:border-[var(--color-success)]/20 transition-all duration-300 flex flex-col h-full overflow-hidden text-left">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-success)]/5 rounded-full blur-[60px] group-hover:bg-[var(--color-success)]/10 transition-colors -mr-20 -mt-20"></div>
+        <div className="group relative border border-gray-100 rounded-3xl p-6 sm:p-8 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-xl hover:border-[var(--wise-green)] transition-all duration-300 flex flex-col h-full overflow-hidden text-left">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--wise-green)]/10 rounded-full blur-[60px] group-hover:bg-[var(--wise-green)]/20 transition-colors -mr-20 -mt-20"></div>
           
-          <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-gray-50 to-[var(--color-success)]/10 border border-[var(--color-success)]/20 rounded-2xl flex items-center justify-center mb-6 text-[var(--color-success)] shadow-sm group-hover:scale-110 transition-transform">
-            <ReceiptText size={36} className="stroke-[1.5]" />
+          <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-50 to-[var(--wise-green)]/10 border border-[var(--wise-green)]/20 rounded-2xl flex items-center justify-center mb-6 text-[var(--wise-dark-green)] shadow-sm group-hover:scale-110 transition-transform">
+            <ReceiptText size={32} className="stroke-[2] sm:w-[36px] sm:h-[36px] sm:stroke-[1.5]" />
           </div>
           
           <h2 className="relative z-10 text-2xl font-bold text-gray-900 mb-3 tracking-tight">Purchases (Bon Achat)</h2>
@@ -102,8 +102,8 @@ export default async function InventoryHubPage() {
               </Button>
             </Link>
             <Link href="/khadem/vouchers/new" className="flex-1">
-              <Button className="w-full rounded-full h-12 font-bold bg-[var(--color-success)] hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all gap-2">
-                New Bon <ArrowRight size={16} />
+              <Button className="w-full rounded-full h-14 font-bold bg-[var(--wise-dark-green)] hover:opacity-90 text-[var(--wise-green)] shadow-md hover:shadow-lg transition-all gap-2 text-base">
+                New Bon <ArrowRight size={18} />
               </Button>
             </Link>
           </div>
