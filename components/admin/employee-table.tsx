@@ -16,6 +16,7 @@ export function EmployeeTable({ employees }: { employees: any[] }) {
     )
   }
 
+  return (
     <>
     <div className="hidden md:block bg-white border border-[var(--color-border)] rounded-lg shadow-sm mt-4 overflow-x-auto w-full">
       <table className="w-full min-w-[800px] text-sm text-left">
