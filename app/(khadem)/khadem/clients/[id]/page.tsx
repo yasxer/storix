@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { AddTransactionDialog } from "@/components/khadem/clients/add-transaction-dialog"
 import { AddPurchaseWithStockDialog } from "@/components/khadem/clients/add-purchase-with-stock-dialog"
 import { ClientTransactionsTable } from "@/components/khadem/clients/client-transactions-table"
+import { cn } from "@/lib/utils"
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
