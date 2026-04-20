@@ -13,6 +13,7 @@ import { useDropzone } from "react-dropzone"
 import JsBarcode from "jsbarcode"
 import { v4 as uuidv4 } from "uuid"
 import { ScannerModal } from "@/app/(khadem)/khadem/pos/scanner-modal"
+import { getUploadUrl, deleteFileFromR2 } from "@/app/actions/storage"
 
 // Types
 type Category = { id: string; name: string }
@@ -112,7 +113,7 @@ export function ProductForm({ categories, models, initialData }: { categories: C
       const parts = url.split('/');
       const fileName = parts.pop();
       if(fileName) {
-         await supabase.storage.from('article-photos').remove([fileName]);
+         await deleteFileFromR2(fileName, 'article-photos');
       }
     } catch(e) {}
     
@@ -145,21 +146,26 @@ export function ProductForm({ categories, models, initialData }: { categories: C
   const onSubmit = async (data: ProductFormValues) => {
     setIsLoading(true)
     try {
-      // 1. Upload photos to 'article-photos' bucket
+      // 1. Upload photos to 'article-photos' bucket in R2
       const uploadedPhotos: string[] = []
       for (const file of photos) {
-        const fileName = `${uuidv4()}-${file.name}`
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("article-photos")
-          .upload(fileName, file)
+        const fileName = `${uuidv4()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`
+        const { success, uploadUrl, publicUrl, error } = await getUploadUrl(fileName, file.type, 'article-photos')
         
-        if (uploadError) throw uploadError
+        if (!success || !uploadUrl) throw new Error(error || "Could not generate upload URL")
         
-        const { data: { publicUrl } } = supabase.storage
-          .from("article-photos")
-          .getPublicUrl(fileName)
-          
-        uploadedPhotos.push(publicUrl)
+        // Upload directly to Cloudflare R2
+        const uploadRes = await fetch(uploadUrl, {
+          method: "PUT",
+          body: file,
+          headers: {
+            "Content-Type": file.type,
+          },
+        })
+
+        if (!uploadRes.ok) throw new Error("Failed to upload image")
+        
+        if (publicUrl) uploadedPhotos.push(publicUrl)
       }
 
       // 2. Insert Article

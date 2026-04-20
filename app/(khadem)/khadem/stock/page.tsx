@@ -13,6 +13,13 @@ export default async function StockPage({
   const query = typeof resolvedParams.q === "string" ? resolvedParams.q : ""
 
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let allowedCategories: string[] = []
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('allowed_categories').eq('id', user.id).single()
+    allowedCategories = profile?.allowed_categories || []
+  }
 
   // Build the query to get all articles + their sizes and colors.
   let articlesQuery = supabase
@@ -36,6 +43,10 @@ export default async function StockPage({
       )
     `)
     .order("created_at", { ascending: false })
+
+  if (allowedCategories && allowedCategories.length > 0) {
+    articlesQuery = articlesQuery.in('category_id', allowedCategories)
+  }
 
   if (query) {
     articlesQuery = articlesQuery.ilike("title", `%${query}%`)

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { v4 as uuidv4 } from "uuid"
 import Link from "next/link"
+import { getUploadUrl } from "@/app/actions/storage"
 
 import {
   Table,
@@ -53,23 +54,31 @@ export function CategoriesManager({ categories }: { categories: any[] }) {
     const file = acceptedFiles[0]
     setUploading(true)
     const fileExt = file.name.split(".").pop()
-    const fileName = `${uuidv4()}.${fileExt}`
+    const fileName = `categories/${uuidv4()}.${fileExt}`
 
-    const { error: uploadError } = await supabase.storage
-      .from("store-assets")
-      .upload(`categories/${fileName}`, file, { cacheControl: "3600", upsert: false })
+    const { success, uploadUrl, publicUrl, error } = await getUploadUrl(fileName, file.type, 'store-assets')
 
-    if (uploadError) {
-      toast.error(`Échec: ${uploadError.message}`)
+    if (!success || !uploadUrl) {
+      toast.error(`Échec: ${error}`)
       setUploading(false)
       return
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from("store-assets")
-      .getPublicUrl(`categories/${fileName}`)
-    
-    setImageUrl(publicUrl)
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
+    })
+
+    if (!uploadRes.ok) {
+      toast.error(`Échec de l'envoi de l'image`)
+      setUploading(false)
+      return
+    }
+
+    setImageUrl(publicUrl || "")
     setUploading(false)
   }
 

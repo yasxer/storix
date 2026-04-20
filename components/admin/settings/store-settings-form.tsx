@@ -10,6 +10,7 @@ import { Save, UploadCloud, X, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useDropzone } from "react-dropzone"
 import { v4 as uuidv4 } from "uuid"
+import { getUploadUrl } from "@/app/actions/storage"
 
 export function StoreSettingsForm({ initialData }: { initialData: any }) {      
   const [loading, setLoading] = useState(false)
@@ -51,21 +52,29 @@ export function StoreSettingsForm({ initialData }: { initialData: any }) {
     setUploadingImage(true)
     const file = acceptedFiles[0]
     const fileExt = file.name.split('.').pop()
-    const fileName = `${uuidv4()}.${fileExt}`
+    const fileName = `hero/${uuidv4()}.${fileExt}`
 
-    const { error: uploadError, data } = await supabase.storage
-      .from('store-assets')
-      .upload(`hero/${fileName}`, file, { cacheControl: '3600', upsert: false })
+    const { success, uploadUrl, publicUrl, error } = await getUploadUrl(fileName, file.type, 'store-assets')
 
-    if (uploadError) {
-      toast.error(`Image upload failed: ${uploadError.message}`)
+    if (!success || !uploadUrl) {
+      toast.error(`Image upload failed: ${error}`)
       setUploadingImage(false)
       return
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('store-assets')
-      .getPublicUrl(`hero/${fileName}`)
+    const uploadRes = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
+    })
+
+    if (!uploadRes.ok) {
+      toast.error(`Image upload failed`)
+      setUploadingImage(false)
+      return
+    }
 
     // Assign to the first empty slot
     let updatedData = { ...formData }

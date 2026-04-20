@@ -5,10 +5,18 @@ import { revalidatePath } from 'next/cache'
 
 export async function searchArticles(query: string) {
   const supabase = await createClient()
+  
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  // Check if they have allowed categories
+  const { data: profile } = await supabase.from('profiles').select('allowed_categories').eq('id', user.id).single()
+  const allowedCategories = profile?.allowed_categories || []
 
   // First try exact barcode match if query is at least 2 chars
   if (query && query.length >= 2) {
-    let { data: products } = await supabase
+    let q = supabase
       .from('articles')
       .select(`
         id, title, barcode, base_price, is_published,
@@ -23,9 +31,15 @@ export async function searchArticles(query: string) {
       .eq('barcode', query.trim())
       .limit(1)
 
+    if (allowedCategories && allowedCategories.length > 0) {
+      q = q.in('category_id', allowedCategories)
+    }
+    
+    let { data: products } = await q
+
     // If no barcode match, text search on title, charika
     if (!products || products.length === 0) {
-      const { data: searchResults } = await supabase
+      let q2 = supabase
         .from('articles')
         .select(`
           id, title, barcode, base_price, is_published,
@@ -40,6 +54,11 @@ export async function searchArticles(query: string) {
         .or(`title.ilike.%${query}%,charika.ilike.%${query}%`)
         .limit(15)
         
+      if (allowedCategories && allowedCategories.length > 0) {
+        q2 = q2.in('category_id', allowedCategories)
+      }
+      
+      const { data: searchResults } = await q2
       products = searchResults
     }
 
@@ -47,21 +66,27 @@ export async function searchArticles(query: string) {
   }
 
   // If no query, return the most recent 100 available items for the initial view
-  const { data: recentProducts } = await supabase
-        .from('articles')
-        .select(`
-          id, title, barcode, base_price, is_published,
-          category:categories(name),
-          model:models(name),
-          sizes:article_sizes(
-            id, size_label, is_standard, price_override,
-            colors:article_size_colors(id, color_name, color_hex, quantity)
-          )
-        `)
-        .eq('is_published', true)
-        .order('created_at', { ascending: false })
-        .limit(100)
+  let recentQ = supabase
+    .from('articles')
+    .select(`
+      id, title, barcode, base_price, is_published,
+      category:categories(name),
+      model:models(name),
+      sizes:article_sizes(
+        id, size_label, is_standard, price_override,
+        colors:article_size_colors(id, color_name, color_hex, quantity)
+      )
+    `)
+    .eq('is_published', true)
+    
+  if (allowedCategories && allowedCategories.length > 0) {
+    recentQ = recentQ.in('category_id', allowedCategories)
+  }
   
+  const { data: recentProducts } = await recentQ
+    .order('created_at', { ascending: false })
+    .limit(100)
+
   return mapProducts(recentProducts)
 }
 
