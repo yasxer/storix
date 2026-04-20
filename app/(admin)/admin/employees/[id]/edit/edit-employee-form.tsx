@@ -7,7 +7,6 @@ import { Loader2 } from "lucide-react"
 import { updateAllowedCategories } from "../../edit-actions"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { Switch } from "@/components/ui/switch"
 
 export function EditEmployeeForm({ employee, categories }: { employee: any, categories: any[] }) {
   const [loading, setLoading] = useState(false)
