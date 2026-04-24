@@ -15,7 +15,8 @@ export default function TrackingForm() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!query.trim()) return
+    const cleanQuery = query.trim()
+    if (!cleanQuery) return
 
     setLoading(true)
     setSearched(true)
@@ -23,14 +24,19 @@ export default function TrackingForm() {
     try {
       let q = supabase.from("orders").select("*")
       
-      // Check if it's a UUID (Order ID) or Phone Number
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(query)
+      // Check if it's a UUID (Order ID)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanQuery)
       
       if (isUUID) {
-        q = q.eq("id", query)
+        q = q.eq("id", cleanQuery)
       } else {
-        // Assume phone number or order number if I had one, but let's check phone
-        q = q.eq("phone", query)
+        // For phone numbers, allow matching raw input or digit-only version
+        const digitsOnly = cleanQuery.replace(/\D/g, '')
+        if (digitsOnly.length >= 8) {
+          q = q.or(`phone.eq."${cleanQuery}",phone.eq."${digitsOnly}"`)
+        } else {
+          q = q.eq("phone", cleanQuery)
+        }
       }
 
       const { data, error } = await q.order("created_at", { ascending: false })
