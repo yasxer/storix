@@ -5,6 +5,7 @@ import { Plus, Search, Filter } from "lucide-react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { ProductRowActions } from "@/components/admin/product-row-actions"
+import { ProductTogglePublish } from "@/components/khadem/product-toggle-publish"
 
 export default async function ProductsPage({
   searchParams,
@@ -101,9 +102,7 @@ export default async function ProductsPage({
                     {article.barcode || "—"}
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant={article.is_published ? "success" : "default"}>
-                      {article.is_published ? "Published" : "Draft"}
-                    </Badge>
+                    <ProductTogglePublish articleId={article.id} initialStatus={article.is_published} />
                   </td>
                   <td className="px-6 py-4 text-right">
                     <ProductRowActions 
@@ -154,10 +153,8 @@ export default async function ProductsPage({
                   </div>
                   
                   <div className="flex justify-between items-end mt-1">
-                     <div className="flex flex-col gap-1.5">
-                        <Badge variant={article.is_published ? "success" : "default"} className={`w-max text-[10px] px-2 py-0 ${article.is_published ? 'bg-[var(--wise-mint)] text-[var(--wise-dark-green)] border-none' : ''}`}>
-                          {article.is_published ? "Published" : "Draft"}
-                        </Badge>
+                     <div className="flex flex-col gap-1.5 items-start">
+                        <ProductTogglePublish articleId={article.id} initialStatus={article.is_published} />
                         <span className="text-[10px] text-gray-400 font-mono tracking-tight bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 inline-block">
                           {article.barcode || "No Barcode"}
                         </span>

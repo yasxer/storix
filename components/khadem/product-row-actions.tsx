@@ -138,7 +138,7 @@ export function ProductRowActions({ articleId, barcode, title, price }: { articl
         <Printer className="h-4 w-4 text-[var(--color-primary)]" />
       </Button>
       
-      <Link href={`/admin/products/${articleId}/edit`}>
+      <Link href={`/khadem/products/${articleId}/edit`}>
         <Button title="Edit Product" variant="outline" size="icon">
           <Edit2 className="h-4 w-4 text-[var(--color-primary)]" />
         </Button>

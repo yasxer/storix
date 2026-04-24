@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Plus, Search, Filter } from "lucide-react"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
-import { ProductRowActions } from "@/components/admin/product-row-actions"
+import { ProductRowActions } from "@/components/khadem/product-row-actions"
+import { ProductTogglePublish } from "@/components/khadem/product-toggle-publish"
 
 export default async function ProductsPage({
   searchParams,
@@ -95,9 +96,7 @@ export default async function ProductsPage({
                     {article.barcode || "—"}
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant={article.is_published ? "success" : "default"}>
-                      {article.is_published ? "Published" : "Draft"}
-                    </Badge>
+                    <ProductTogglePublish articleId={article.id} initialStatus={article.is_published} />
                   </td>
                   <td className="px-6 py-4 text-right">
                     <ProductRowActions 
