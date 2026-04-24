@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, Plus, Trash2, UploadCloud, X, RefreshCw, ScanLine } from "lucide-react"
+import { Loader2, Plus, Trash2, UploadCloud, X, RefreshCw, ScanLine, Eye, EyeOff } from "lucide-react"
 import { useDropzone } from "react-dropzone"
 import JsBarcode from "jsbarcode"
 import { v4 as uuidv4 } from "uuid"
@@ -425,38 +425,77 @@ export function ProductForm({ categories, models, initialData }: { categories: C
       {/* Storefront Settings */}
       <div className="space-y-4 pt-4 border-t border-[var(--color-border)]">    
         <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Storefront Options</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label className="flex items-center gap-3 p-3 border rounded-lg bg-white cursor-pointer hover:border-[var(--color-primary)] transition-colors">
-            <input type="checkbox" {...form.register("is_published")} className="w-5 h-5 accent-[var(--color-primary)]" />
-            <div>
-              <p className="font-semibold text-sm">Visible publiquement (Published)</p>
-              <p className="text-xs text-[var(--color-text-muted)]">Afficher ce produit sur la boutique</p>
-            </div>
-          </label>
-          <label className="flex items-center gap-3 p-3 border rounded-lg bg-white cursor-pointer hover:border-[var(--color-primary)] transition-colors">
-            <input type="checkbox" {...form.register("is_featured")} className="w-5 h-5 accent-[var(--color-primary)]" />
-            <div>
-              <p className="font-semibold text-sm">Mettre en avant (Featured)</p>
-              <p className="text-xs text-[var(--color-text-muted)]">Afficher sur la page d'accueil</p>
-            </div>
-          </label>
-          <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 border rounded-lg p-3 bg-[var(--color-surface)]">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" {...form.register("is_on_sale")} className="w-5 h-5 accent-[var(--color-primary)]" />
+        <div className="space-y-3">
+
+          {/* Active / Inactive big toggle */}
+          <div
+            className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
+              form.watch("is_published")
+                ? "border-green-400 bg-green-50"
+                : "border-gray-200 bg-gray-50"
+            }`}
+            onClick={() => form.setValue("is_published", !form.watch("is_published"))}
+          >
+            <div className="flex items-center gap-3">
+              {form.watch("is_published") ? (
+                <div className="bg-green-100 p-2 rounded-full">
+                  <Eye className="h-5 w-5 text-green-600" />
+                </div>
+              ) : (
+                <div className="bg-gray-200 p-2 rounded-full">
+                  <EyeOff className="h-5 w-5 text-gray-500" />
+                </div>
+              )}
               <div>
-                <p className="font-semibold text-sm">En solde (On Sale)</p>
-                <p className="text-xs text-[var(--color-text-muted)]">Activer la promotion</p>
+                <p className={`font-bold text-base ${
+                  form.watch("is_published") ? "text-green-700" : "text-gray-500"
+                }`}>
+                  {form.watch("is_published") ? "Actif — Visible dans la Boutique" : "Inactif — Caché de la Boutique"}
+                </p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                  {form.watch("is_published")
+                    ? "Ce produit est visible par les clients dans la boutique."
+                    : "Ce produit ne sera pas affiché dans la boutique."}
+                </p>
+              </div>
+            </div>
+            {/* Toggle pill */}
+            <div className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${
+              form.watch("is_published") ? "bg-green-500" : "bg-gray-300"
+            }`}>
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${
+                form.watch("is_published") ? "left-7" : "left-1"
+              }`} />
+            </div>
+            <input type="checkbox" {...form.register("is_published")} className="hidden" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="flex items-center gap-3 p-3 border rounded-lg bg-white cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+              <input type="checkbox" {...form.register("is_featured")} className="w-5 h-5 accent-[var(--color-primary)]" />
+              <div>
+                <p className="font-semibold text-sm">Mettre en avant (Featured)</p>
+                <p className="text-xs text-[var(--color-text-muted)]">Afficher sur la page d'accueil</p>
               </div>
             </label>
-            {form.watch("is_on_sale") && (
-              <div>
-                <label className="block text-xs font-medium mb-1">Pourcentage de réduction (%)</label>
-                <div className="flex items-center gap-2">
-                   <Input type="number" min="1" max="100" {...form.register("sale_percentage")} className="bg-white w-full" placeholder="Ex: 20" />
-                   <span className="text-sm font-medium">%</span>
+            <div className="border rounded-lg p-3 bg-[var(--color-surface)]">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" {...form.register("is_on_sale")} className="w-5 h-5 accent-[var(--color-primary)]" />
+                <div>
+                  <p className="font-semibold text-sm">En solde (On Sale)</p>
+                  <p className="text-xs text-[var(--color-text-muted)]">Activer la promotion</p>
                 </div>
-              </div>
-            )}
+              </label>
+              {form.watch("is_on_sale") && (
+                <div className="mt-2">
+                  <label className="block text-xs font-medium mb-1">Réduction (%)</label>
+                  <div className="flex items-center gap-2">
+                    <Input type="number" min="1" max="100" {...form.register("sale_percentage")} className="bg-white w-full" placeholder="Ex: 20" />
+                    <span className="text-sm font-medium">%</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { format } from "date-fns"
-import { OrderRowActions } from "@/components/admin/orders/order-row-actions"
+import { OrderRowActions } from "@/components/khadem/orders/order-row-actions"
 import { Badge } from "@/components/ui/badge"
 
 export default async function OrdersPage() {

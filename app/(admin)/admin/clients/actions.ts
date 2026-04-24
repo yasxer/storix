@@ -101,7 +101,6 @@ export async function addClientPurchaseWithStock(data: {
 }) {
   const supabase = await createClient()
 
-  // 1. Calculate amount and description
   let totalAmount = 0;
   const descParts: string[] = [];
 
@@ -109,8 +108,6 @@ export async function addClientPurchaseWithStock(data: {
     totalAmount += item.quantity * item.price;
     descParts.push(`${item.quantity}x ${item.name}`);
 
-    // Update stock
-    // Since we cant easily do Math in supabase update without RPC, we select then update
     const { data: colorData } = await supabase
       .from("article_size_colors")
       .select("quantity")
@@ -125,17 +122,103 @@ export async function addClientPurchaseWithStock(data: {
 
   const description = descParts.join(", ")
 
-  // 2. Add client transaction
-  const { error } = await supabase.from("client_transactions").insert({
+  // Insert client transaction
+  const { data: tx, error } = await supabase.from("client_transactions").insert({
     client_id: data.client_id,
     type: "purchase",
     amount: totalAmount,
     description: description,
-  })
+  }).select().single()
 
-  if (error) {
-    return { error: error.message }
+  if (error || !tx) {
+    return { error: error?.message || "Transaction failed" }
   }
+
+  // Save structured items (for modification later)
+  for (const item of data.items) {
+    await supabase.from("client_purchase_items").insert({
+      transaction_id: tx.id,
+      color_id: item.color_id,
+      quantity: item.quantity,
+      price: item.price,
+      name: item.name,
+    })
+  }
+
+  revalidatePath(`/admin/clients/${data.client_id}`)
+  revalidatePath("/admin/clients")
+  revalidatePath("/admin/stock")
+  return { success: true }
+}
+
+export async function modifyClientPurchase(data: {
+  transaction_id: string
+  client_id: string
+  items: { color_id: string, quantity: number, price: number, name: string }[]
+}) {
+  const supabase = await createClient()
+
+  // 1. Fetch old items and restore their stock
+  const { data: oldItems } = await supabase
+    .from("client_purchase_items")
+    .select("*")
+    .eq("transaction_id", data.transaction_id)
+
+  for (const oldItem of (oldItems || [])) {
+    const { data: colorData } = await supabase
+      .from("article_size_colors")
+      .select("quantity")
+      .eq("id", oldItem.color_id)
+      .single()
+    if (colorData) {
+      await supabase.from("article_size_colors")
+        .update({ quantity: colorData.quantity + oldItem.quantity })
+        .eq("id", oldItem.color_id)
+    }
+  }
+
+  // 2. Delete old items
+  await supabase.from("client_purchase_items")
+    .delete()
+    .eq("transaction_id", data.transaction_id)
+
+  // 3. Apply new items and deduct stock
+  let totalAmount = 0
+  const descParts: string[] = []
+
+  for (const item of data.items) {
+    totalAmount += item.quantity * item.price
+    descParts.push(`${item.quantity}x ${item.name}`)
+
+    const { data: colorData } = await supabase
+      .from("article_size_colors")
+      .select("quantity")
+      .eq("id", item.color_id)
+      .single()
+
+    if (colorData) {
+      const newQ = Math.max(0, colorData.quantity - item.quantity)
+      await supabase.from("article_size_colors").update({ quantity: newQ }).eq("id", item.color_id)
+    }
+
+    await supabase.from("client_purchase_items").insert({
+      transaction_id: data.transaction_id,
+      color_id: item.color_id,
+      quantity: item.quantity,
+      price: item.price,
+      name: item.name,
+    })
+  }
+
+  // 4. Update the transaction amount and description
+  const { error } = await supabase.from("client_transactions")
+    .update({
+      amount: totalAmount,
+      description: descParts.join(", ") || "Bon modifié",
+    })
+    .eq("id", data.transaction_id)
+
+  if (error) return { error: error.message }
 
   revalidatePath(`/admin/clients/${data.client_id}`)
   revalidatePath("/admin/clients")

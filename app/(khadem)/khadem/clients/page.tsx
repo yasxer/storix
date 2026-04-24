@@ -36,20 +36,20 @@ export default async function ClientsPage() {
   })
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2">
+    <div className="space-y-6 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black font-display text-gray-900 tracking-tight">Clients</h1>
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black font-display text-gray-900 tracking-tight">Clients</h1>
+          <p className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">
             Gestion des crédits et des versements
           </p>
         </div>
-        <div className="pt-2">
+        <div className="flex-shrink-0">
            <AddClientDialog />
         </div>
       </div>
 
-      <div className="bg-white border rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-gray-100 rounded-2xl sm:rounded-[32px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden">
         <ClientsTable clients={enrichedClients} />
       </div>
     </div>

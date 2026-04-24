@@ -47,7 +47,7 @@ export function AddClientDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full sm:w-auto h-[52px] rounded-[2xl] rounded-2xl bg-[var(--wise-dark-green)] hover:opacity-90 text-[var(--wise-mint)] font-bold text-sm shadow-[0_4px_14px_rgba(0,0,0,0.1)] transition-all flex items-center justify-center shrink-0">
+        <Button className="w-full sm:w-auto h-12 px-6 rounded-xl sm:rounded-2xl bg-[var(--wise-dark-green)] hover:bg-[var(--wise-dark-green)]/90 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center shrink-0">
           <Plus className="h-5 w-5 mr-2" />
           Ajouter un Client
         </Button>

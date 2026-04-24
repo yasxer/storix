@@ -50,14 +50,14 @@ export function ClientsTable({ clients }: { clients: any[] }) {
       {/* Desktop Table View */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="bg-[#f8f9fa] text-[var(--color-text-muted)] border-b text-xs uppercase font-semibold">
+          <thead className="bg-[var(--color-bg-subtle)] text-[var(--color-text-muted)] border-b font-medium">
             <tr>
-              <th className="px-6 py-4 font-semibold">Nom du Client</th>       
-              <th className="px-6 py-4 font-semibold w-56 hidden md:table-cell">Téléphone</th>
-              <th className="px-6 py-4 font-semibold text-right">Total Acheté</th>
-              <th className="px-6 py-4 font-semibold text-right">Total Versé</th>       
-              <th className="px-6 py-4 font-semibold text-right text-red-600">Dette (Crédit)</th>
-              <th className="px-6 py-4 font-semibold text-center w-24">Actions</th>
+              <th className="px-6 py-4">Nom du Client</th>       
+              <th className="px-6 py-4 w-56 hidden md:table-cell">Téléphone</th>
+              <th className="px-6 py-4 text-right">Total Acheté</th>
+              <th className="px-6 py-4 text-right">Total Versé</th>       
+              <th className="px-6 py-4 text-right text-red-600">Dette (Crédit)</th>
+              <th className="px-6 py-4 text-center w-24">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-gray-700">
@@ -76,10 +76,10 @@ export function ClientsTable({ clients }: { clients: any[] }) {
                   {client.total_paid.toFixed(2)} DA
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <span className={`px-3 py-1 rounded-md text-[11px] font-black ${   
+                  <span className={`px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-wider ${   
                     client.solde > 0
                     ? 'bg-red-50 text-red-600 border border-red-100'
-                    : 'bg-green-50 text-[var(--wise-dark-green)] border border-[var(--wise-green)]'        
+                    : 'bg-[var(--wise-mint)]/30 text-[var(--wise-dark-green)] border border-[var(--wise-mint)]/50'        
                   }`}>
                     {client.solde.toFixed(2)} DA
                   </span>
@@ -160,10 +160,10 @@ export function ClientsTable({ clients }: { clients: any[] }) {
              
              <div className="bg-gray-50/80 p-3 rounded-xl flex justify-between items-center mt-1 border border-gray-100">
                 <span className="text-[10px] uppercase font-bold text-gray-500">Current Debt</span>
-                <span className={`px-2 py-0.5 rounded-md text-[11px] font-black ${   
+                <span className={`px-2 py-0.5 rounded-md text-[11px] font-black uppercase tracking-wider ${   
                   client.solde > 0
                   ? 'bg-red-50 text-red-600 border border-red-100'
-                  : 'bg-[var(--wise-mint)] text-[var(--wise-dark-green)] border border-[var(--wise-green)]'        
+                  : 'bg-[var(--wise-mint)]/30 text-[var(--wise-dark-green)] border border-[var(--wise-mint)]/50'        
                 }`}>
                   {client.solde.toFixed(2)} DA
                 </span>
