@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { SearchBar } from "./search-bar"
 import { CartIcon } from "./cart-icon"
-import { User } from "lucide-react"
+import { User, Truck } from "lucide-react"
 
 export async function Header({ settings, categories }: { settings: any, categories: any[] }) {
   return (
@@ -41,11 +41,12 @@ export async function Header({ settings, categories }: { settings: any, categori
           </div>
           
           <Link 
-            href="/compte" 
-            className="hidden sm:flex items-center gap-2 p-2 rounded-full transition-all duration-200 hover:bg-[rgba(211,242,192,0.4)]"
-            style={{ color: 'var(--wise-black)' }}
+            href="/suivi-commande" 
+            className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
+            style={{ backgroundColor: 'var(--wise-green)', color: 'var(--wise-dark-green)' }}
           >
-            <User className="w-5 h-5" />
+            <Truck className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">Suivi Commande</span>
           </Link>
           
           <CartIcon />

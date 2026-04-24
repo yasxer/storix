@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { ShoppingBag, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { AddToCartForm } from "@/components/store/add-to-cart-form"
+import { ProductGallery } from "@/components/store/product-gallery"
 
 export default async function ArticlePage({ 
   params 
@@ -71,56 +72,13 @@ export default async function ArticlePage({
       
       <div className="grid md:grid-cols-2 gap-6 md:gap-10 lg:gap-14">
         {/* Gallery */}
-        <div className="space-y-3 md:space-y-4 -mx-4 md:mx-0 px-4 md:px-0">
-          <div 
-            className="aspect-[4/5] relative overflow-hidden flex items-center justify-center"
-            style={{ borderRadius: '30px', boxShadow: 'var(--wise-ring)', backgroundColor: '#fafaf8' }}
-          >
-            {sortedPhotos[0] ? (
-              <img 
-                src={sortedPhotos[0].photo_url} 
-                alt={article.title}
-                className="w-full h-full object-contain p-4"
-              />
-            ) : (
-                <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: '#fafaf8' }}>
-                    <ShoppingBag className="h-12 w-12" style={{ color: 'var(--wise-light-surface)' }} />
-                </div>
-            )}
+        <ProductGallery 
+          photos={sortedPhotos} 
+          title={article.title} 
+          isOnSale={article.is_on_sale} 
+          salePercentage={article.sale_percentage} 
+        />
 
-            {/* Sale badge on main image */}
-            {article.is_on_sale && (
-              <span 
-                className="absolute top-4 left-4 z-10 text-[11px] font-bold px-4 py-2 rounded-[9999px] uppercase tracking-wider"
-                style={{ backgroundColor: 'var(--wise-green)', color: 'var(--wise-dark-green)' }}
-              >
-                -{article.sale_percentage}%
-              </span>
-            )}
-          </div>
-
-          {sortedPhotos.length > 1 && (
-            <div className="grid grid-cols-4 gap-3">
-              {sortedPhotos.map((photo: any, idx: number) => (
-                 <div 
-                   key={idx} 
-                   className="aspect-square relative overflow-hidden cursor-pointer flex items-center justify-center transition-all duration-200 hover:scale-105"
-                   style={{ 
-                     borderRadius: '16px', 
-                     boxShadow: 'var(--wise-ring)', 
-                     backgroundColor: '#fafaf8',
-                   }}
-                 >
-                    <img 
-                      src={photo.photo_url} 
-                      alt={`${article.title} - ${idx}`}
-                      className="w-full h-full object-contain p-1.5"
-                    />
-                 </div>
-              ))}
-            </div>
-          )}
-        </div>
         
         {/* Info & Add to Cart */}
         <div className="px-1 md:px-0 mt-2 md:mt-2">
