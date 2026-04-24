@@ -42,11 +42,12 @@ export async function Header({ settings, categories }: { settings: any, categori
           
           <Link 
             href="/suivi-commande" 
-            className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
+            className="flex items-center gap-2 px-3 py-2 sm:px-5 sm:py-2.5 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
             style={{ backgroundColor: 'var(--wise-green)', color: 'var(--wise-dark-green)' }}
           >
             <Truck className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-wider">Suivi Commande</span>
+            <span className="hidden min-[400px]:inline text-[10px] sm:text-xs font-bold uppercase tracking-wider">Suivi</span>
+            <span className="hidden sm:inline text-[10px] sm:text-xs font-bold uppercase tracking-wider">Commande</span>
           </Link>
           
           <CartIcon />
