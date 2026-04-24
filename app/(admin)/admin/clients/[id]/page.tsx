@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { AddTransactionDialog } from "@/components/admin/clients/add-transaction-dialog"
 import { AddPurchaseWithStockDialog } from "@/components/admin/clients/add-purchase-with-stock-dialog"
 import { ClientTransactionsTable } from "@/components/admin/clients/client-transactions-table"
+import PrintButton from "@/components/print-button"
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -68,6 +69,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
             </p>
           )}
         </div>
+        <div className="flex gap-2 ml-auto">
+          <PrintButton type="client_statement" id={client.id} label="Relevé" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -111,7 +115,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           <h2 className="text-lg font-bold font-display">Historique des Opérations</h2>
           <p className="text-sm text-[var(--color-text-muted)]">Consultez ce qu'il a pris et ce qu'il a versé.</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="grid grid-cols-1 gap-3 sm:flex sm:gap-2 flex-wrap">
           <AddTransactionDialog clientId={client.id} type="payment" buttonText="Ajouter Versement" />
           <AddPurchaseWithStockDialog clientId={client.id} />
           <AddTransactionDialog clientId={client.id} type="purchase" buttonText="Achat Simple" />

@@ -15,6 +15,7 @@ import {
   LogOut,
   Store,
   Menu,
+  FileText,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -35,7 +36,10 @@ const sidebarLinks = [
   { href: "/admin/history", label: "History", icon: History },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/clients", label: "Clients", icon: Users },
-  { href: "/admin/employees", label: "Employees", icon: Users },    { href: "/admin/suppliers", label: "Fournisseurs", icon: Users },  { href: "/admin/vouchers", label: "Vouchers", icon: Receipt },
+  { href: "/admin/employees", label: "Employees", icon: Users },
+  { href: "/admin/suppliers", label: "Fournisseurs", icon: Users },
+  { href: "/admin/vouchers", label: "Vouchers", icon: Receipt },
+  { href: "/admin/documents/bon-commande", label: "Bon Commande", icon: FileText },
   { href: "/admin/reports", label: "Reports", icon: BarChart2 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ]
@@ -70,18 +74,16 @@ export function AdminSidebar({
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all group ${
-                isActive
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all group ${isActive
                   ? "bg-[var(--wise-mint)] text-[var(--wise-dark-green)]"
                   : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-              }`}
+                }`}
             >
               <Icon
-                className={`h-[18px] w-[18px] transition-colors ${
-                  isActive
+                className={`h-[18px] w-[18px] transition-colors ${isActive
                     ? "text-[var(--wise-dark-green)]"
                     : "text-gray-400 group-hover:text-[var(--wise-dark-green)]"
-                }`}
+                  }`}
               />
               {link.label}
             </Link>

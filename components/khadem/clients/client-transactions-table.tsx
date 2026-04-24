@@ -7,6 +7,7 @@ import { MoreHorizontal, Pencil, Trash2, TrendingDown, TrendingUp, PackageSearch
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Printer } from "lucide-react"
 import { deleteClientTransaction } from "@/app/(khadem)/khadem/clients/actions"
 import { EditTransactionDialog } from "./edit-transaction-dialog"
 import { ModifyPurchaseDialog } from "./modify-purchase-dialog"
@@ -128,13 +129,22 @@ export function ClientTransactionsTable({ transactions, clientId }: { transactio
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52 bg-white/95 backdrop-blur rounded-xl shadow-lg border-gray-100 p-1">
                       {tx.type === "purchase" && (
-                        <DropdownMenuItem
-                          className="cursor-pointer rounded-lg text-sm font-semibold m-0.5 text-blue-600 focus:bg-blue-50"
-                          onClick={() => { setModifyingTx(tx); setIsModifyOpen(true) }}
-                        >
-                          <PackageSearch className="mr-2 h-4 w-4" />
-                          Modifier Bon
-                        </DropdownMenuItem>
+                        <>
+                          <DropdownMenuItem
+                            className="cursor-pointer rounded-lg text-sm font-semibold m-0.5 text-blue-600 focus:bg-blue-50"
+                            onClick={() => { setModifyingTx(tx); setIsModifyOpen(true) }}
+                          >
+                            <PackageSearch className="mr-2 h-4 w-4" />
+                            Modifier Bon
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="cursor-pointer rounded-lg text-sm font-semibold m-0.5 text-[var(--wise-dark-green)] focus:bg-[var(--wise-mint)]"
+                            onClick={() => window.open(`/print/client_purchase/${tx.id}`, '_blank')}
+                          >
+                            <Printer className="mr-2 h-4 w-4" />
+                            Imprimer Facture
+                          </DropdownMenuItem>
+                        </>
                       )}
                       <DropdownMenuItem className="cursor-pointer rounded-lg text-sm font-semibold m-0.5 focus:bg-gray-100" onClick={() => handleEdit(tx)}>
                         <Pencil className="mr-2 h-4 w-4 text-gray-500" />
@@ -181,13 +191,22 @@ export function ClientTransactionsTable({ transactions, clientId }: { transactio
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border-gray-100 p-1">
                     {tx.type === "purchase" && (
-                      <DropdownMenuItem
-                        className="cursor-pointer rounded-lg text-sm font-semibold m-1 text-blue-600 focus:bg-blue-50"
-                        onClick={() => { setModifyingTx(tx); setIsModifyOpen(true) }}
-                      >
-                        <PackageSearch className="mr-2 h-4 w-4" />
-                        Modifier Bon
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem
+                          className="cursor-pointer rounded-lg text-sm font-semibold m-1 text-blue-600 focus:bg-blue-50"
+                          onClick={() => { setModifyingTx(tx); setIsModifyOpen(true) }}
+                        >
+                          <PackageSearch className="mr-2 h-4 w-4" />
+                          Modifier Bon
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer rounded-lg text-sm font-semibold m-1 text-[var(--wise-dark-green)] focus:bg-[var(--wise-mint)]"
+                          onClick={() => window.open(`/print/client_purchase/${tx.id}`, '_blank')}
+                        >
+                          <Printer className="mr-2 h-4 w-4" />
+                          Imprimer Facture
+                        </DropdownMenuItem>
+                      </>
                     )}
                     <DropdownMenuItem className="cursor-pointer rounded-lg text-sm font-semibold m-1 focus:bg-gray-100" onClick={() => handleEdit(tx)}>
                       <Pencil className="mr-2 h-4 w-4 text-blue-500" />

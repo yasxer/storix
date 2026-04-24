@@ -7,6 +7,7 @@ import { AddTransactionDialog } from "@/components/khadem/clients/add-transactio
 import { AddPurchaseWithStockDialog } from "@/components/khadem/clients/add-purchase-with-stock-dialog"
 import { ClientTransactionsTable } from "@/components/khadem/clients/client-transactions-table"
 import { cn } from "@/lib/utils"
+import PrintButton from "@/components/print-button"
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -68,6 +69,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
               {client.phone}
             </p>
           )}
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <PrintButton type="client_statement" id={client.id} label="Relevé" />
         </div>
       </div>
 
@@ -142,7 +146,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           <p className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-wider">Consultez ce qu'il a pris et ce qu'il a versé.</p>
         </div>
         
-        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 px-1">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 px-1">
           <AddTransactionDialog clientId={client.id} type="payment" buttonText="Verser" />
           <AddPurchaseWithStockDialog clientId={client.id} />
         </div>
