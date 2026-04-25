@@ -19,6 +19,7 @@ export async function createSupplier(data: { name: string, phone: string, addres
   })
   if (error) return { error: error.message }
   revalidatePath("/admin/suppliers")
+  revalidatePath("/khadem/suppliers")
   return { success: true }
 }
 
@@ -31,6 +32,7 @@ export async function deleteSupplier(id: string) {
     return { error: error.message }
   }
   revalidatePath("/admin/suppliers")
+  revalidatePath("/khadem/suppliers")
   return { success: true }
 }
 
