@@ -9,25 +9,32 @@ export default async function SuppliersPage() {
   const supabase = await createClient()
 
   // 1. Get ALL Suppliers
-  let { data: suppliers } = await supabase
+  let { data: suppliers, error: suppliersError } = await supabase
     .from("suppliers")
     .select("*")
     .order("name")
+
+  if (suppliersError) {
+    console.error("Error fetching suppliers:", suppliersError)
+  }
 
   // 2. We need to calculate Solde for each supplier = SUM(Vouchers Total) - SUM(Payments Amount)
   // To do this efficiently, we can fetch all vouchers and payments grouping by supplier, 
   // or we can just fetch everything and reduce in memory since data size might not be huge yet.
   
-  const { data: allVoucherItems } = await supabase
+  const { data: allVoucherItems, error: voucherError } = await supabase
     .from("purchase_voucher_items")
     .select(`
       quantity, purchase_price,
       purchase_vouchers!inner(supplier_id)
     `)
 
-  const { data: allPayments } = await supabase
+  const { data: allPayments, error: paymentError } = await supabase
     .from("supplier_payments")
     .select("supplier_id, amount")
+
+  if (voucherError) console.error("Error fetching voucher items:", voucherError)
+  if (paymentError) console.error("Error fetching payments:", paymentError)
 
   const enrichedSuppliers = (suppliers || []).map(sup => {
     // Calculate total bought
