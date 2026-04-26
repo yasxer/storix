@@ -35,16 +35,27 @@ export default async function EditVoucherPage({ params }: { params: Promise<{ id
     .eq("is_published", true)
     .order("title")
 
+  // 3. Fetch suppliers
+  const { data: suppliers } = await supabase
+    .from("suppliers")
+    .select("id, name, phone")
+    .order("name")
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold font-display text-[var(--color-text)]">Edit Purchase Voucher</h1>
-        <p className="text-sm text-[var(--color-text-muted)] mt-1">
-          Modifying this voucher will automatically calculate and adjust product quantities back (remove the old stock, apply the new stock).
+      <div className="mb-8 px-4 sm:px-0">
+        <h1 className="text-3xl font-black font-display text-gray-900">Edit Purchase Voucher</h1>
+        <p className="text-base text-gray-500 mt-1 font-medium">
+          Modifying this voucher will automatically calculate and adjust product quantities.
         </p>
       </div>
 
-      <VoucherForm articles={articles || []} initialData={voucher} />
+      <VoucherForm 
+        articles={articles || []} 
+        suppliers={suppliers || []} 
+        initialData={voucher} 
+        redirectPath="/khadem/vouchers"
+      />
     </div>
   )
 }

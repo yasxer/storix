@@ -19,16 +19,22 @@ export default async function NewVoucherPage() {
     .eq("is_published", true)
     .order("title")
 
+  // Fetch suppliers
+  const { data: suppliers } = await supabase
+    .from("suppliers")
+    .select("id, name, phone")
+    .order("name")
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold font-display text-[var(--color-text)]">New Purchase Voucher</h1>
-        <p className="text-sm text-[var(--color-text-muted)] mt-1">
+      <div className="mb-8 px-4 sm:px-0">
+        <h1 className="text-3xl font-black font-display text-gray-900">New Purchase Voucher</h1>
+        <p className="text-base text-gray-500 mt-1 font-medium">
           Record incoming stock. This will automatically update your inventory counts and prices.
         </p>
       </div>
 
-      <VoucherForm articles={articles || []} redirectPath="/khadem/vouchers" />
+      <VoucherForm articles={articles || []} suppliers={suppliers || []} redirectPath="/khadem/vouchers" />
     </div>
   )
 }
