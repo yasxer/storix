@@ -22,7 +22,7 @@ export default async function AdminLayout({
     .single()
 
   return (
-    <div className="flex h-screen bg-[var(--color-bg)] flex-col md:flex-row">
+    <div className="fixed inset-0 flex h-[100dvh] overflow-hidden bg-[var(--color-bg)] flex-col md:flex-row">
       <AdminSidebar profile={profile} userEmail={user.email || ""} />
 
       {/* Main Content */}

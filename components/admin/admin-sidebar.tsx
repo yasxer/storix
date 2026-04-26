@@ -116,7 +116,7 @@ export function AdminSidebar({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 flex-col border-r border-[var(--color-border)] md:flex shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10 relative">
+      <aside className="hidden w-64 flex-col h-full border-r border-[var(--color-border)] md:flex shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10 relative">
         {renderSidebarContent()}
       </aside>
 
