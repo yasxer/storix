@@ -16,7 +16,8 @@ export async function updateStoreSettings(data: {
   hero_banner_text?: string | null,
   hero_subtitle?: string | null,
   hero_cta_text?: string | null,
-  hero_cta_link?: string | null
+  hero_cta_link?: string | null,
+  store_nif?: string | null
 }) {
   const supabase = await createClient() as any
 
@@ -27,6 +28,7 @@ export async function updateStoreSettings(data: {
       store_name: data.store_name,
       store_phone: data.store_phone,
       store_address: data.store_address,
+      store_nif: data.store_nif,
       low_stock_threshold: data.low_stock_threshold,
       hero_image_url: data.hero_image_url,
       hero_image_url_2: data.hero_image_url_2,

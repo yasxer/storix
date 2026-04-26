@@ -11,6 +11,13 @@ export default async function PrintPage({ params }: { params: Promise<{ type: st
   let documentData: any = null;
   let itemsData: any[] = [];
   let title = "";
+  
+  // Fetch store settings for the header
+  const { data: storeSettings } = await supabase
+    .from("store_settings")
+    .select("*")
+    .limit(1)
+    .single()
 
   if (type === "client_purchase") {
     // Fetch Client Purchase Data
@@ -182,13 +189,81 @@ export default async function PrintPage({ params }: { params: Promise<{ type: st
         }
       })
     }
+  } else if (type === "bon") {
+    // Fetch Bon detailed information
+    const { data: bon } = await supabase
+      .from("bons")
+      .select(`
+        *,
+        profiles ( full_name ),
+        bon_items (
+          quantity,
+          unit_price,
+          discount_amount,
+          articles ( title ),
+          article_sizes ( size_label ),
+          article_size_colors ( color_name )
+        )
+      `)
+      .eq("id", id)
+      .single()
+
+    if (!bon) return notFound();
+
+    title = "Bon de Vente (Ticket)"
+    documentData = {
+      date: bon.created_at,
+      entityName: "Passager",
+      entityPhone: "",
+      totalAmount: bon.total_price,
+      reference: `BON-${bon.id.substring(0,8).toUpperCase()}`
+    }
+    itemsData = bon.bon_items.map((item: any) => ({
+      name: `${item.articles?.title} ${item.article_sizes?.size_label || ''} ${item.article_size_colors?.color_name || ''}`,
+      quantity: item.quantity,
+      price: item.unit_price
+    }))
+  } else if (type === "voucher") {
+    // Fetch Voucher detailed information
+    const { data: voucher } = await supabase
+      .from("purchase_vouchers")
+      .select(`
+        *,
+        profiles ( full_name ),
+        purchase_voucher_items (
+          quantity,
+          purchase_price,
+          sale_price,
+          articles ( title ),
+          article_sizes ( size_label ),
+          article_size_colors ( color_name, color_hex )
+        )
+      `)
+      .eq("id", id)
+      .single()
+
+    if (!voucher) return notFound();
+
+    title = "Bon d'Achat (Voucher)"
+    documentData = {
+      date: voucher.created_at,
+      entityName: voucher.notes || "Fournisseur Non Défini",
+      entityPhone: "",
+      totalAmount: voucher.purchase_voucher_items.reduce((sum: number, item: any) => sum + (item.purchase_price * item.quantity), 0),
+      reference: `ACH-${voucher.id.substring(0,8).toUpperCase()}`
+    }
+    itemsData = voucher.purchase_voucher_items.map((item: any) => ({
+      name: `${item.articles?.title} ${item.article_sizes?.size_label || ''} ${item.article_size_colors?.color_name || ''}`,
+      quantity: item.quantity,
+      price: item.purchase_price
+    }))
   } else {
     return notFound();
   }
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center py-10 print:bg-white print:p-0 print:py-0">
-      <PrintOptions title={title} documentData={documentData} items={itemsData} />
+      <PrintOptions title={title} documentData={documentData} items={itemsData} storeSettings={storeSettings} />
     </div>
   )
 }

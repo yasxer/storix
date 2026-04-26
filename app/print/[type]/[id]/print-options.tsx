@@ -19,7 +19,17 @@ interface DocumentData {
   reference: string
 }
 
-export default function PrintOptions({ title, documentData, items }: { title: string, documentData: DocumentData, items: PrintItem[] }) {
+export default function PrintOptions({ 
+  title, 
+  documentData, 
+  items, 
+  storeSettings 
+}: { 
+  title: string, 
+  documentData: DocumentData, 
+  items: PrintItem[],
+  storeSettings?: any 
+}) {
   const [formatType, setFormatType] = useState<"a4" | "ticket">("a4")
 
   const handlePrint = () => {
@@ -62,9 +72,14 @@ export default function PrintOptions({ title, documentData, items }: { title: st
       >
         {/* Header */}
         <div className={`flex flex-col ${formatType === 'a4' ? 'items-center border-b pb-6 mb-6' : 'items-center border-b pb-3 mb-3 border-dashed border-black'}`}>
-          <h1 className={`font-black tracking-tighter ${formatType === 'a4' ? 'text-4xl' : 'text-xl'}`}>HANOT POS</h1>
-          <p className="text-gray-500 font-mono mt-1">NIF: 0000000000000000</p>
-          <p className="text-gray-500 font-mono">Tél: 0555 55 55 55</p>
+          <h1 className={`font-black tracking-tighter ${formatType === 'a4' ? 'text-4xl' : 'text-xl uppercase'}`}>
+            {storeSettings?.store_name || "HANOT POS"}
+          </h1>
+          <p className="text-gray-500 font-mono mt-1 text-xs">NIF: {storeSettings?.store_nif || "0000000000000000"}</p>
+          <p className="text-gray-500 font-mono text-xs">Tél: {storeSettings?.store_phone || "0555 55 55 55"}</p>
+          {storeSettings?.store_address && (
+            <p className="text-gray-500 font-mono text-[10px] italic">{storeSettings.store_address}</p>
+          )}
         </div>
 
         {/* Document Info */}

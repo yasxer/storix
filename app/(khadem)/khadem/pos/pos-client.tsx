@@ -150,8 +150,11 @@ export default function PosClient({ sessionId, khademId }: PosClientProps) {
     startCheckoutTransition(async () => {
        const res = await createBon(khademId, sessionId, total, cart)
        if (res.success) {
-          alert('Bon verified and created successfully!') 
+          // alert('Bon verified and created successfully!') 
           setCart([]) 
+          // Refresh results immediately
+          const updatedItems = await searchArticles(query)
+          setResults(updatedItems)
        } else {
           alert('Failed to checkout: ' + res.error)
        }

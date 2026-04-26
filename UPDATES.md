@@ -10,6 +10,10 @@ This document tracks the recent improvements and the planned features for the pl
     - Added quick **Size Management** per product card.
     - Implemented **Duplicate Size Prevention**.
     - Modernized the UI with a clean, card-based layout.
+- **POS & Receipt Improvements**:
+    - **Real-time Stock**: Stock now updates instantly in the POS after a sale without page refresh.
+    - **Better Printing**: Replaced standard browser print with a dedicated professional invoice/ticket layout.
+    - **Cancellation with Stock Revert**: Added ability to cancel receipts, which automatically restores the sold items to stock.
 - **Supplier Integration**: Added supplier selection and payment tracking to the purchase flow.
 
 ## 🚀 Upcoming Features (Roadmap)

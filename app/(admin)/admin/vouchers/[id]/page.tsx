@@ -51,10 +51,16 @@ export default async function ViewVoucherPage({ params }: { params: Promise<{ id
         </div>
         
         <div className="flex gap-2">
+          <Link href={`/print/voucher/${voucher.id}`} target="_blank">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Printer className="h-4 w-4" />
+              Imprimer le Bon
+            </Button>
+          </Link>
           <Link href={`/admin/vouchers/${voucher.id}/edit`}>
             <Button variant="outline" className="flex items-center gap-2">
               <Edit2 className="h-4 w-4 text-[var(--color-primary)]" />
-              Edit
+              Modifier
             </Button>
           </Link>
         </div>

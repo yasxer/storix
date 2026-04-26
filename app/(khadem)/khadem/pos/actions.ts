@@ -157,3 +157,25 @@ export async function createBon(khademId: string, sessionId: string, total: numb
   revalidatePath('/khadem')
   return { success: true, bonId: bon.id }
 }
+
+export async function cancelBon(bonId: string) {
+  const supabase = await createClient()
+
+  // We just delete the bon. 
+  // The database trigger (revert_stock_on_bon_delete) will automatically 
+  // restore the stock for each item when they are deleted via cascade.
+  const { error: deleteError } = await supabase
+    .from('bons')
+    .delete()
+    .eq('id', bonId)
+
+  if (deleteError) {
+    console.error("Delete bon error:", deleteError)
+    return { success: false, error: "Failed to delete bon: " + deleteError.message }
+  }
+
+  revalidatePath('/khadem')
+  revalidatePath('/admin/stock')
+  revalidatePath('/khadem/stock')
+  return { success: true }
+}

@@ -20,6 +20,7 @@ export function StoreSettingsForm({ initialData }: { initialData: any }) {
     store_name: initialData?.store_name || "",
     store_phone: initialData?.store_phone || "",
     store_address: initialData?.store_address || "",
+    store_nif: initialData?.store_nif || "",
     low_stock_threshold: initialData?.low_stock_threshold || 5,
     hero_image_url: initialData?.hero_image_url || "",
     hero_image_url_2: initialData?.hero_image_url_2 || "",
@@ -141,13 +142,24 @@ export function StoreSettingsForm({ initialData }: { initialData: any }) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="store_address">Store Address</Label>
-        <Input 
-          id="store_address"
-          value={formData.store_address}
-          onChange={e => setFormData({ ...formData, store_address: e.target.value })}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="store_address">Store Address</Label>
+          <Input 
+            id="store_address"
+            value={formData.store_address}
+            onChange={e => setFormData({ ...formData, store_address: e.target.value })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="store_nif">NIF (Matricule Fiscal)</Label>
+          <Input 
+            id="store_nif"
+            value={formData.store_nif}
+            onChange={e => setFormData({ ...formData, store_nif: e.target.value })}
+            placeholder="0000000000000000"
+          />
+        </div>
       </div>
 
       <div className="space-y-2">

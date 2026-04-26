@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Printer } from "lucide-react"
 import Link from "next/link"
 import { PrintButton } from "@/components/shared/print-button"
+import { BonActions } from "./bon-actions"
 
 export default async function ViewBonPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
@@ -54,8 +55,8 @@ export default async function ViewBonPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
         
-        <div>
-           <PrintButton />
+        <div className="flex gap-2">
+           <BonActions bonId={id} />
         </div>
       </div>
 
