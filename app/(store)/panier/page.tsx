@@ -125,7 +125,11 @@ export default function CartPage() {
                         <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-[9999px] text-xs font-semibold" style={{ backgroundColor: 'rgba(22,51,0,0.05)', color: 'var(--wise-black)' }}>
                           <div 
                             className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: item.color_hex, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)' }}
+                            style={
+                              item.color_hex?.includes(',') || item.color_hex?.includes('/')
+                                ? { background: `linear-gradient(135deg, ${(item.color_hex.split(/\/|,/)[0] || '#ccc').trim()} 50%, ${(item.color_hex.split(/\/|,/)[1] || '#ccc').trim()} 50%)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)' }
+                                : { backgroundColor: item.color_hex, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)' }
+                            }
                             title={item.color_name}
                           />
                           <span>{item.color_name}</span>

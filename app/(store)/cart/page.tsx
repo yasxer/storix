@@ -93,7 +93,11 @@ export default function CartPage() {
                         <div className="flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-md text-slate-700">
                           <div 
                             className="w-3 h-3 rounded-full border border-slate-200 shadow-sm" 
-                            style={{ backgroundColor: item.color_hex }}
+                            style={
+                              item.color_hex?.includes(',') || item.color_hex?.includes('/')
+                                ? { background: `linear-gradient(135deg, ${(item.color_hex.split(/\/|,/)[0] || '#ccc').trim()} 50%, ${(item.color_hex.split(/\/|,/)[1] || '#ccc').trim()} 50%)` }
+                                : { backgroundColor: item.color_hex }
+                            }
                             title={item.color_name}
                           />
                           <span>{item.color_name}</span>

@@ -40,7 +40,7 @@ const productSchema = z.object({
     colors: z.array(z.object({
       id: z.string(),
       color_name: z.string().min(1, "Name is required"),
-      color_hex: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Must be HEX"),
+      color_hex: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})([,\/]\s*#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}))*$/, "Must be HEX (e.g. #000000 or #000000,#ffffff)"),
       // Quantity removed from product creation. It will be 0 by default. Managed from Purchase Vouchers.
     })).min(1, "At least one color is required per size")
   })).min(1, "At least one size is required")
@@ -505,7 +505,9 @@ const STANDARD_COLORS = [
   { name: "Blanc", hex: "#ffffff" },
   { name: "Rouge", hex: "#ff0000" },
   { name: "Bleu", hex: "#0000ff" },
-  { name: "Gris", hex: "#808080" }
+  { name: "Gris", hex: "#808080" },
+  { name: "Noir/Argent", hex: "#000000,#c0c0c0" },
+  { name: "Mix...", hex: "#ffffff,#000000" }
 ];
 
 function ColorsFieldArray({ control, sizeIndex, register, setValue, watch }: { control: any, sizeIndex: number, register: any, setValue: any, watch: any }) {
@@ -527,7 +529,11 @@ function ColorsFieldArray({ control, sizeIndex, register, setValue, watch }: { c
               size="sm" 
               onClick={() => append({ id: uuidv4(), color_name: c.name, color_hex: c.hex })}
             >
-              <div className="w-3 h-3 rounded-full mr-2 border border-gray-300" style={{ backgroundColor: c.hex }}></div>
+              <div className="w-3 h-3 rounded-full mr-2 border border-gray-300" style={
+                c.hex.includes(',') || c.hex.includes('/')
+                ? { background: `linear-gradient(135deg, ${(c.hex.split(/\/|,/)[0] || '#ccc').trim()} 50%, ${(c.hex.split(/\/|,/)[1] || '#ccc').trim()} 50%)` }
+                : { backgroundColor: c.hex }
+              }></div>
               {c.name}
             </Button>
           ))}
@@ -554,7 +560,11 @@ function ColorsFieldArray({ control, sizeIndex, register, setValue, watch }: { c
                         type="button"
                         title={c.name}
                         className={`w-3.5 h-3.5 rounded-full border border-gray-200 hover:scale-125 transition-transform ${currentColorName === c.name ? 'ring-2 ring-[var(--color-primary)] ring-offset-1' : ''}`}
-                        style={{ backgroundColor: c.hex }}
+                        style={
+                         c.hex.includes(',') || c.hex.includes('/') 
+                           ? { background: `linear-gradient(135deg, ${(c.hex.split(/\/|,/)[0] || '#ccc').trim()} 50%, ${(c.hex.split(/\/|,/)[1] || '#ccc').trim()} 50%)` }
+                           : { backgroundColor: c.hex }
+                        }
                         onClick={() => {
                           setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`, c.name);
                           setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, c.hex);
@@ -566,31 +576,77 @@ function ColorsFieldArray({ control, sizeIndex, register, setValue, watch }: { c
                 <Input {...register(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`)} placeholder="e.g. Noir" className="bg-white h-8 text-xs" />
               </div>
               <div>
-                <label className="block text-[10px] uppercase text-gray-500 mb-1">Hex</label>
-                <div className="flex items-center border border-[var(--color-border)] h-8 rounded bg-white overflow-hidden w-28">
+                <label className="block text-[10px] uppercase text-gray-500 mb-1">Hex / Mix</label>
+                <div className="flex items-center border border-[var(--color-border)] h-8 rounded bg-white overflow-hidden min-w-[120px]">
+                  {/* First Color Picker */}
                   <div className="relative w-8 h-8 flex-shrink-0">
                     <input 
                       type="color" 
-                      value={currentColorHex || "#000000"}
+                      value={(currentColorHex?.split(/,|\//)[0] || "#000000").trim()}
                       onChange={(e) => {
-                        const newHex = e.target.value;
-                        setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, newHex);
-                        // If it matches a standard color exactly, update the name too
-                        const match = STANDARD_COLORS.find(c => c.hex.toLowerCase() === newHex.toLowerCase());
-                        if (match && (!currentColorName || currentColorName === "Default" || currentColorName === "Couleur Spéciale")) {
-                          setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`, match.name);
-                        }
+                        const newColor = e.target.value;
+                        const parts = (currentColorHex || "").split(/,|\//);
+                        parts[0] = newColor;
+                        const newVal = parts.join(",");
+                        setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, newVal);
                       }}
-                      className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer opacity-0" 
+                      className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer opacity-0 z-10" 
                     />
-                    <div className="w-full h-full border-r border-[var(--color-border)]" style={{ backgroundColor: currentColorHex }} />
+                    <div 
+                      className="w-full h-full border-r border-[var(--color-border)]" 
+                      style={{ backgroundColor: (currentColorHex?.split(/,|\//)[0] || "#000000").trim() }} 
+                    />
                   </div>
+
+                  {/* Second Color Picker (Optional Mix) */}
+                  {(currentColorHex?.includes(',') || currentColorHex?.includes('/')) && (
+                    <div className="relative w-8 h-8 flex-shrink-0 border-l border-[var(--color-border)]">
+                      <input 
+                        type="color" 
+                        value={(currentColorHex?.split(/,|\//)[1] || "#ffffff").trim()}
+                        onChange={(e) => {
+                          const newColor = e.target.value;
+                          const parts = (currentColorHex || "").split(/,|\//);
+                          if (parts.length < 2) parts.push("#ffffff");
+                          parts[1] = newColor;
+                          const newVal = parts.join(",");
+                          setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, newVal);
+                        }}
+                        className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer opacity-0 z-10" 
+                      />
+                      <div 
+                        className="w-full h-full border-r border-[var(--color-border)]" 
+                        style={{ backgroundColor: (currentColorHex?.split(/,|\//)[1] || "#ffffff").trim() }} 
+                      />
+                    </div>
+                  )}
+
                   <Input 
                     value={currentColorHex}
                     onChange={(e) => setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, e.target.value)}
                     placeholder="#000000"
-                    className="border-0 h-full text-xs px-2 w-full focus-visible:ring-0" 
+                    className="border-0 h-full text-[10px] px-2 w-full focus-visible:ring-0 min-w-[80px]" 
                   />
+                  
+                  {/* Toggle Mix Mode Button */}
+                  <button
+                    type="button"
+                    title="Add/Remove Mix Color"
+                    onClick={() => {
+                      const parts = (currentColorHex || "").split(/,|\//);
+                      if (parts.length > 1) {
+                        setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, parts[0]);
+                      } else {
+                        setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, `${parts[0]},#ffffff`);
+                        if (!currentColorName || currentColorName === "Default") {
+                           setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`, "Mix");
+                        }
+                      }
+                    }}
+                    className={`h-full px-2 border-l border-[var(--color-border)] hover:bg-gray-50 flex items-center justify-center transition-colors ${currentColorHex?.includes(',') ? 'text-[var(--color-primary)] bg-blue-50' : 'text-gray-400'}`}
+                  >
+                    <Plus className={`h-3 w-3 ${currentColorHex?.includes(',') ? 'rotate-45' : ''} transition-transform`} />
+                  </button>
                 </div>
               </div>
               <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50 mb-px" onClick={() => remove(colorIndex)} disabled={fields.length === 1}>

@@ -101,6 +101,11 @@ export function AddToCartForm({ article }: { article: any }) {
            <div className="flex flex-wrap gap-3">
              {selectedSize.colors.map((color: any) => {
                const isSelected = selectedColor?.id === color.id
+               const hexValues = color.color_hex ? color.color_hex.split(/\/|,/).map((h: string) => h.trim()) : ['#ccc']
+               const backgroundStyle = hexValues.length > 1 
+                 ? { background: `linear-gradient(135deg, ${hexValues[0]} 50%, ${hexValues[1]} 50%)` }
+                 : { backgroundColor: hexValues[0] }
+
                return (
                  <button
                    key={color.id}
@@ -121,7 +126,7 @@ export function AddToCartForm({ article }: { article: any }) {
                    <div 
                      className="w-full h-full rounded-full" 
                      style={{ 
-                       backgroundColor: color.color_hex || '#ccc',
+                       ...backgroundStyle,
                        boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.1)',
                      }} 
                    />

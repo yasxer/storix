@@ -218,7 +218,11 @@ function VariantRow({ variant }: { variant: any }) {
         {variant.sizeLabel}
       </td>
       <td className="px-4 py-2 flex items-center gap-2">
-        <div className="w-4 h-4 rounded-full border shadow-sm" style={{ backgroundColor: variant.colorHex }} title={variant.colorHex}></div>
+        <div className="w-4 h-4 rounded-full border shadow-sm" style={
+          variant.colorHex?.includes(',') || variant.colorHex?.includes('/')
+            ? { background: `linear-gradient(135deg, ${(variant.colorHex.split(/\/|,/)[0] || '#ccc').trim()} 50%, ${(variant.colorHex.split(/\/|,/)[1] || '#ccc').trim()} 50%)` }
+            : { backgroundColor: variant.colorHex }
+        } title={variant.colorHex}></div>
         <span>{variant.colorName}</span>
       </td>
       <td className="px-4 py-2 border-l">
@@ -268,7 +272,11 @@ function VariantCard({ variant }: { variant: any }) {
        <div className="flex justify-between items-center">
           <span className="font-extrabold text-[11px] bg-[#f8f9fa] border border-[var(--color-border)] px-1.5 py-0.5 rounded-md text-gray-700 shadow-sm">{variant.sizeLabel}</span>
           <div className="flex items-center gap-1.5 bg-white pl-1.5 pr-2 py-0.5 rounded-full border border-[var(--color-border)] shadow-sm">
-             <div className="w-2.5 h-2.5 rounded-full border border-black/10 shadow-sm" style={{ backgroundColor: variant.colorHex }}></div>
+             <div className="w-2.5 h-2.5 rounded-full border border-black/10 shadow-sm" style={
+                variant.colorHex?.includes(',') || variant.colorHex?.includes('/')
+                  ? { background: `linear-gradient(135deg, ${(variant.colorHex.split(/\/|,/)[0] || '#ccc').trim()} 50%, ${(variant.colorHex.split(/\/|,/)[1] || '#ccc').trim()} 50%)` }
+                  : { backgroundColor: variant.colorHex }
+             }></div>
              <span className="text-[9px] uppercase font-bold text-gray-600 truncate max-w-[40px]">{variant.colorName}</span>
           </div>
        </div>
