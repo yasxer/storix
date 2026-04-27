@@ -8,9 +8,8 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, Plus, Trash2, UploadCloud, X, RefreshCw, ScanLine } from "lucide-react"
+import { Loader2, Plus, Trash2, UploadCloud, X, ScanLine, Wand2 } from "lucide-react"
 import { useDropzone } from "react-dropzone"
-import JsBarcode from "jsbarcode"
 import { v4 as uuidv4 } from "uuid"
 import { ScannerModal } from "@/app/(khadem)/khadem/pos/scanner-modal"
 import { getUploadUrl, deleteFileFromR2 } from "@/app/actions/storage"
@@ -32,38 +31,32 @@ const productSchema = z.object({
   barcode: z.string().optional(),
   is_published: z.boolean().default(true),
   
-  sizes: z.array(z.object({
-    id: z.string(), // Temp ID for client-side
+  matrix_sizes: z.array(z.object({
+    id: z.string(),
     size_label: z.string().min(1, "Size is required"),
-    is_standard: z.boolean().default(true),
     price_override: z.coerce.number().nullable().optional(),
-    colors: z.array(z.object({
-      id: z.string(),
-      color_name: z.string().min(1, "Name is required"),
-      color_hex: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})([,\/]\s*#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}))*$/, "Must be HEX (e.g. #000000 or #000000,#ffffff)"),
-      // Quantity removed from product creation. It will be 0 by default. Managed from Purchase Vouchers.
-    })).min(1, "At least one color is required per size")
-  })).min(1, "At least one size is required")
+  })).min(1, "At least one size is required"),
+  matrix_colors: z.array(z.object({
+    id: z.string(),
+    color_name: z.string().min(1, "Name is required"),
+    color_hex: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})([,/]\s*#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}))*$/, "Must be HEX"),
+  })).min(1, "At least one color is required")
 })
 
 type ProductFormValues = z.infer<typeof productSchema>
 
-export function ProductForm({ categories, models, initialData }: { categories: Category[], models: Model[], initialData?: ProductFormValues & { id: string, existingPhotos?: { id: string; photo_url: string; position: number }[] } }) {
+export function ProductForm({ categories, models, initialData }: { categories: Category[], models: Model[], initialData?: any }) {
   const router = useRouter()
   const supabase = createClient()
   const [isLoading, setIsLoading] = useState(false)
-  const [localCategories, setLocalCategories] = useState(categories)
-  const [localModels, setLocalModels] = useState(models)
   const [photos, setPhotos] = useState<File[]>([])
   const [isScanning, setIsScanning] = useState(false)
   const [existingPhotos, setExistingPhotos] = useState<{ id: string; photo_url: string; position: number }[]>(
     initialData?.existingPhotos || []
   )
   
-  const form = useForm<ProductFormValues>({
-    // @ts-ignore zodResolver types can complain about precise union inference differences
-    resolver: zodResolver(productSchema),
-    defaultValues: initialData || {
+  const getInitialValues = () => {
+    if (!initialData) return {
       title: "",
       base_price: 0,
       purchase_price: 0,
@@ -74,17 +67,45 @@ export function ProductForm({ categories, models, initialData }: { categories: C
       low_stock_threshold: 5,
       barcode: "",
       is_published: true,
-      sizes: [{ id: uuidv4(), size_label: "Standard", is_standard: true, price_override: null, colors: [{ id: uuidv4(), color_name: "Default", color_hex: "#000000" }] }]
-    }
+      matrix_sizes: [{ id: uuidv4(), size_label: "Standard", price_override: null }],
+      matrix_colors: [{ id: uuidv4(), color_name: "Default", color_hex: "#000000" }]
+    };
+
+    const matrix_sizes = (initialData.sizes || []).map((s: any) => ({
+      id: s.id,
+      size_label: s.size_label,
+      price_override: s.price_override
+    }));
+
+    const matrix_colors = (initialData.sizes?.[0]?.colors || []).map((c: any) => ({
+      id: c.id,
+      color_name: c.color_name,
+      color_hex: c.color_hex
+    }));
+
+    return {
+      ...initialData,
+      matrix_sizes: matrix_sizes.length > 0 ? matrix_sizes : [{ id: uuidv4(), size_label: "Standard", price_override: null }],
+      matrix_colors: matrix_colors.length > 0 ? matrix_colors : [{ id: uuidv4(), color_name: "Default", color_hex: "#000000" }]
+    };
+  };
+
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: getInitialValues() as unknown as ProductFormValues
   })
 
-  // Filter models based on selected category
   const selectedCategoryId = form.watch("category_id")
-  const filteredModels = localModels.filter(m => m.category_id === selectedCategoryId)
+  const filteredModels = models.filter(m => m.category_id === selectedCategoryId)
 
   const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
     control: form.control,
-    name: "sizes"
+    name: "matrix_sizes"
+  })
+
+  const { fields: colorFields, append: appendColor, remove: removeColor } = useFieldArray({
+    control: form.control,
+    name: "matrix_colors"
   })
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -92,414 +113,199 @@ export function ProductForm({ categories, models, initialData }: { categories: C
     onDrop: acceptedFiles => setPhotos(prev => [...prev, ...acceptedFiles])
   })
 
-  const removePhoto = (index: number) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index))
-  }
-
-  const removeExistingPhoto = async (id: string, url: string) => {
-    if (!confirm('Are you sure you want to remove this photo?')) return;
-    
-    // delete from db
-    await supabase.from('article_photos').delete().eq('id', id);
-    
-    // attempt to extract fileName and delete from bucket
+  const removeExistingPhoto = async (photoId: string, photoUrl: string) => {
     try {
-      const parts = url.split('/');
+      const parts = photoUrl.split('/');
       const fileName = parts.pop();
-      if(fileName) {
-         await deleteFileFromR2(fileName, 'article-photos');
-      }
-    } catch(e) {}
-    
-    setExistingPhotos(prev => prev.filter(p => p.id !== id));
+      if (fileName) await deleteFileFromR2(fileName);
+      
+      const { error } = await supabase.from("article_photos").delete().eq("id", photoId)
+      if (error) throw error
+      setExistingPhotos(prev => prev.filter(p => p.id !== photoId))
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   const generateBarcode = () => {
-    // Generate a simple EAN-13 looking barcode for internal use (or custom)
-    const code = Math.floor(100000000000 + Math.random() * 900000000000).toString()
-    form.setValue("barcode", code)
+    const randomBarcode = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+    form.setValue("barcode", randomBarcode, { shouldValidate: true });
   }
-
-  const barcodeValue = form.watch("barcode")
-  useEffect(() => {
-    if (barcodeValue) {
-      try {
-        JsBarcode("#barcode-preview", barcodeValue, {
-          format: "CODE128", // code128 is more forgiving with different length/char strings
-          lineColor: "#111111",
-          width: 2,
-          height: 40,
-          displayValue: true
-        })
-      } catch (e) {
-        // If the code is invalid for the format, ignore or show custom handling
-      }
-    }
-  }, [barcodeValue])
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsLoading(true)
     try {
-      // 1. Upload photos to 'article-photos' bucket in R2
-      const uploadedPhotos: string[] = []
+      const { data: product, error: productErr } = await supabase.from("articles").upsert({
+        id: (initialData as any)?.id || uuidv4(),
+        title: data.title,
+        base_price: data.base_price,
+        purchase_price: data.purchase_price,
+        category_id: data.category_id,
+        model_id: data.model_id || null,
+        charika: data.charika || null,
+        description: data.description || null,
+        low_stock_threshold: data.low_stock_threshold,
+        barcode: data.barcode || null,
+        is_published: data.is_published,
+      }, { onConflict: "id" }).select().single()
+
+      if (productErr) throw productErr
+      const articleId = product.id
+
       for (const file of photos) {
-        const fileName = `${uuidv4()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`
-        const { success, uploadUrl, publicUrl, error } = await getUploadUrl(fileName, file.type, 'article-photos')
-        
-        if (!success || !uploadUrl) throw new Error(error || "Could not generate upload URL")
-        
-        // Upload directly to Cloudflare R2
-        const uploadRes = await fetch(uploadUrl, {
-          method: "PUT",
-          body: file,
-          headers: {
-            "Content-Type": file.type,
-          },
-        })
-
-        if (!uploadRes.ok) throw new Error("Failed to upload image")
-        
-        if (publicUrl) uploadedPhotos.push(publicUrl)
+        const uploadUrl = await getUploadUrl(file.name, file.type)
+        await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } })
+        const photoUrl = uploadUrl.split("?")[0]
+        await supabase.from("article_photos").insert({ article_id: articleId, photo_url: photoUrl, position: 0 })
       }
 
-      // 2. Insert Article
-      let articleId = initialData?.id;
-      if (initialData) {
-        const { error: articleErr } = await supabase.from("articles").update({
-          title: data.title,
-          base_price: data.base_price,
-          purchase_price: data.purchase_price,
-          category_id: data.category_id,
-          model_id: data.model_id || null,
-          charika: data.charika || null,
-          description: data.description || null,
-          low_stock_threshold: data.low_stock_threshold,
-          barcode: data.barcode || null,
-          is_published: data.is_published,
-          updated_at: new Date().toISOString()
-        }).eq("id", articleId!);
-        if (articleErr) throw articleErr || new Error("Failed to update article");
-      } else {
-        const { data: article, error: articleErr } = await supabase.from("articles").insert({
-          title: data.title,
-          base_price: data.base_price,
-          purchase_price: data.purchase_price,
-          category_id: data.category_id,
-          model_id: data.model_id || null,
-          charika: data.charika || null,
-          description: data.description || null,
-          low_stock_threshold: data.low_stock_threshold,
-          barcode: data.barcode || null,
-          is_published: data.is_published
-        }).select().single();
-        if (articleErr || !article) throw articleErr || new Error("Failed to insert article");
-        articleId = article.id;
-      }
-
-      // 3. Insert Photos DB references
-      if (uploadedPhotos.length > 0) {
-        const photoInserts = uploadedPhotos.map((url, position) => ({
-          article_id: articleId!,
-          photo_url: url,
-          position: existingPhotos.length + position
-        }))
-        const { error: photoErr } = await supabase.from("article_photos").insert(photoInserts)
-        if (photoErr) throw photoErr
-      }
-
-      // 4. Upsert Sizes and Colors
       const currentSizeIds: string[] = []
-      
-      for (const size of data.sizes) {
+      for (const size of data.matrix_sizes) {
         const { data: upsertedSize, error: sizeErr } = await supabase.from("article_sizes").upsert({
           id: size.id,
-          article_id: articleId!,
+          article_id: articleId,
           size_label: size.size_label,
-          is_standard: size.is_standard,
+          is_standard: true,
           price_override: size.price_override || null
         }, { onConflict: "id" }).select().single()
 
-        if (sizeErr || !upsertedSize) throw sizeErr || new Error("Failed connecting size")
+        if (sizeErr || !upsertedSize) throw sizeErr
         currentSizeIds.push(upsertedSize.id)
 
         const currentColorIds: string[] = []
-        for (const color of size.colors) {
+        for (const color of data.matrix_colors) {
+          // Find existing color to avoid unique constraint issues
+          const { data: existingColor } = await supabase.from("article_size_colors")
+            .select("id")
+            .eq("size_id", upsertedSize.id)
+            .eq("color_name", color.color_name)
+            .maybeSingle();
+
+          const colorId = existingColor?.id || uuidv4();
+
           const { data: upsertedColor, error: colorErr } = await supabase.from("article_size_colors").upsert({
-            id: color.id,
+            id: colorId,
             size_id: upsertedSize.id,
             color_name: color.color_name,
             color_hex: color.color_hex,
           }, { onConflict: "id" }).select().single()
-          
           if (colorErr || !upsertedColor) throw colorErr
           currentColorIds.push(upsertedColor.id)
         }
 
-        if (initialData) {
-          const initialColorsDict = initialData.sizes.find((s: any) => s.id === size.id)?.colors || []
-          const removedColors = initialColorsDict.filter((c: any) => !currentColorIds.includes(c.id))
-          if (removedColors.length > 0) {
-            await supabase.from("article_size_colors").delete().in("id", removedColors.map((c: any) => c.id))
-          }
-        }
+        const { data: existingColors } = await supabase.from("article_size_colors").select("id").eq("size_id", upsertedSize.id);
+        const colorsToDelete = (existingColors || []).filter(c => !currentColorIds.includes(c.id)).map(c => c.id);
+        if (colorsToDelete.length > 0) await supabase.from("article_size_colors").delete().in("id", colorsToDelete);
       }
 
-      if (initialData) {
-        const removedSizes = initialData.sizes.filter((s: any) => !currentSizeIds.includes(s.id))
-        if (removedSizes.length > 0) {
-          await supabase.from("article_sizes").delete().in("id", removedSizes.map((s: any) => s.id))
-        }
-      }
+      const { data: existingSizes } = await supabase.from("article_sizes").select("id").eq("article_id", articleId);
+      const sizesToDelete = (existingSizes || []).filter(s => !currentSizeIds.includes(s.id)).map(s => s.id);
+      if (sizesToDelete.length > 0) await supabase.from("article_sizes").delete().in("id", sizesToDelete);
 
-      router.push("/admin/products")
+      router.push("/khadem/products")
       router.refresh()
     } catch (err: any) {
       console.error(err)
-      alert("Error saving product: " + err.message)
+      alert(err.message)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <form 
-      onSubmit={form.handleSubmit(onSubmit as any, (errors) => {
-        console.log("Form Validation Errors:", errors);
-        
-        // Extract basic field error messages if any
-        const errorMessages = [];
-        if (errors.title) errorMessages.push("Title is required");
-        if (errors.category_id) errorMessages.push("Category is required");
-        if (errors.base_price) errorMessages.push("Base Price is required");
-        if (errors.sizes) errorMessages.push("Please check Sizes and Colors (e.g. missing size name or color info)");
-        
-        alert("Please fix validation errors before saving:\n" + (errorMessages.length > 0 ? "- " + errorMessages.join("\n- ") : "Check sizes and colors"));
-      })} 
-      className="space-y-8"
-    >
-      
-      {/* Basic Info */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Basic Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <Input {...form.register("title")} placeholder="Product Name" className="bg-white" />
-            {form.formState.errors.title && <p className="text-sm text-red-500 mt-1">{form.formState.errors.title.message}</p>}
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pb-20">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white p-6 rounded-xl border border-[var(--color-border)] shadow-sm space-y-4">
+            <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Product Information</h3>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Title</label>
+              <Input {...form.register("title")} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <select {...form.register("category_id")} className="w-full h-10 px-3 rounded-md border border-[var(--color-border)] bg-white text-sm">
+                  <option value="">Select Category</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Model</label>
+                <select {...form.register("model_id")} className="w-full h-10 px-3 rounded-md border border-[var(--color-border)] bg-white text-sm" disabled={!selectedCategoryId}>
+                  <option value="">Select Model</option>
+                  {filteredModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </select>
+              </div>
+            </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Prix d'Achat (DA)</label>
-            <Input type="number" {...form.register("purchase_price")} className="bg-white border-blue-200 focus-visible:ring-blue-500" />
-            {form.formState.errors.purchase_price && <p className="text-sm text-red-500 mt-1">{form.formState.errors.purchase_price.message}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Prix de Vente (Base Price DA)</label>
-            <Input type="number" {...form.register("base_price")} className="bg-white border-green-200 focus-visible:ring-green-500" />
-            {form.formState.errors.base_price && <p className="text-sm text-red-500 mt-1">{form.formState.errors.base_price.message}</p>}
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Brand / Company (Charika)</label>
-            <Input {...form.register("charika")} placeholder="Brand Name" className="bg-white" />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea {...form.register("description")} placeholder="Product description..." className="w-full px-3 py-2 border border-[#e5e5e5] rounded focus:outline-none focus:border-[var(--color-primary)] bg-white text-sm min-h-[100px]" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
+          <div className="bg-white p-6 rounded-xl border border-[var(--color-border)] shadow-sm space-y-4">
+            <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Inventory</h3>
             <div className="flex gap-2">
-              <select
-                {...form.register("category_id")}
-                className="w-full px-3 py-2 border border-[#e5e5e5] rounded focus:outline-none focus:border-[var(--color-primary)] bg-white text-sm"
-                onChange={(e) => {
-                  form.setValue("category_id", e.target.value);
-                  form.setValue("model_id", ""); // reset model
-                }}
-              >
-                <option value="">Select a category...</option>
-                {localCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <Button type="button" variant="outline" size="icon" onClick={async () => {
-                const name = prompt("Enter new category name:")
-                if(!name) return
-                const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-                const { data, error } = await supabase.from("categories").insert({ name, slug }).select().single()
-                if(error) return alert("Error creating category")
-                setLocalCategories(prev => [...prev, data as Category].sort((a,b) => a.name.localeCompare(b.name)))
-                form.setValue("category_id", data.id)
-              }}><Plus className="h-4 w-4" /></Button>
-            </div>
-            {form.formState.errors.category_id && <p className="text-sm text-red-500 mt-1">{form.formState.errors.category_id.message}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Model (Optional)</label>
-            <div className="flex gap-2">
-              <select
-                {...form.register("model_id")}
-                className="w-full px-3 py-2 border border-[#e5e5e5] rounded focus:outline-none focus:border-[var(--color-primary)] bg-white text-sm"
-                disabled={!selectedCategoryId}
-              >
-                <option value="">Select a model...</option>
-                {filteredModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-              </select>
-              <Button type="button" variant="outline" size="icon" disabled={!selectedCategoryId} onClick={async () => {
-                const name = prompt("Enter new model name:")
-                if(!name || !selectedCategoryId) return
-                const { data, error } = await supabase.from("models").insert({ name, category_id: selectedCategoryId }).select().single()
-                if(error) return alert("Error creating model")
-                setLocalModels(prev => [...prev, data as Model].sort((a,b) => a.name.localeCompare(b.name)))
-                form.setValue("model_id", data.id)
-              }}><Plus className="h-4 w-4" /></Button>
+              <Input {...form.register("barcode")} placeholder="Barcode" className="flex-1" />
+              <Button type="button" variant="outline" size="icon" onClick={() => setIsScanning(true)} title="Scan Barcode"><ScanLine className="h-4 w-4" /></Button>
+              <Button type="button" variant="outline" size="icon" onClick={generateBarcode} title="Generate Barcode"><Wand2 className="h-4 w-4" /></Button>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Inventory & Barcode */}
-      <div className="space-y-4 pt-4 border-t border-[var(--color-border)]">
-        <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Inventaire & Code-barres</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Seuil de stock faible</label>
-            <Input type="number" {...form.register("low_stock_threshold")} className="bg-white" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Code-barres du produit</label>
-            <div className="flex items-center gap-2">
-              <Input 
-                {...form.register("barcode")} 
-                className="bg-white flex-1" 
-                placeholder="Entrer code ou utiliser scan" 
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    // Prevent form submission when physical scanner sends "Enter"
-                    e.preventDefault();
-                  }
-                }}
-              />
-              <Button type="button" variant="outline" onClick={() => setIsScanning(true)} className="bg-slate-50">
-                <ScanLine className="h-4 w-4 mr-2" /> Scanner
-              </Button>
-              <Button type="button" variant="secondary" onClick={generateBarcode}>
-                <RefreshCw className="h-4 w-4 mr-2" /> Générer
-              </Button>
-            </div>
-            {isScanning && (
-              <ScannerModal
-                isOpen={isScanning}
-                onClose={() => setIsScanning(false)}
-                onScan={(result) => {
-                  form.setValue("barcode", result)
-                  setIsScanning(false)
-                }}
-              />
-            )}
-            {form.watch("barcode") && (
-              <div className="mt-2 p-4 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg flex justify-center">
-                <svg id="barcode-preview"></svg>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Photos */}
-      <div className="space-y-4 pt-4 border-t border-[var(--color-border)]">
-        <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Photos</h3>
-        <div 
-          {...getRootProps()} 
-          className="border-2 border-dashed border-[var(--color-border)] hover:border-[var(--color-primary)] rounded-lg p-8 text-center cursor-pointer transition-colors bg-[var(--color-surface)]"
-        >
-          <input {...getInputProps()} />
-          <UploadCloud className="h-10 w-10 text-[var(--color-text-muted)] mx-auto mb-2" />
-          <p className="text-sm font-medium">Click or drag images here to upload</p>
-          <p className="text-xs text-[var(--color-text-muted)]">PNG, JPG up to 5MB</p>
-        </div>
-
-        {(photos.length > 0 || existingPhotos.length > 0) && (
-          <div className="flex gap-4 overflow-x-auto py-2">
-            {existingPhotos.map((photo) => (
-              <div key={photo.id} className="relative flex-shrink-0">
-                <img src={photo.photo_url} alt="preview" className="h-24 w-24 object-cover rounded-lg border border-[var(--color-border)]" />
-                <button type="button" onClick={() => removeExistingPhoto(photo.id, photo.photo_url)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm hover:bg-red-600 transition-colors z-10">
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-            {photos.map((file, i) => (
-              <div key={i} className="relative flex-shrink-0">
-                <img src={URL.createObjectURL(file)} alt="preview" className="h-24 w-24 object-cover rounded-lg border border-[var(--color-border)]" />
-                <button type="button" onClick={() => removePhoto(i)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm hover:bg-red-600 transition-colors z-10">
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Sizes & Colors */}
-      <div className="space-y-4 pt-4 border-t border-[var(--color-border)]">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Variants (Sizes & Colors)</h3>
         </div>
 
         <div className="space-y-6">
-          {sizeFields.map((field, sizeIndex) => (
-            <div key={field.id} className="p-4 border border-[var(--color-border)] rounded-lg bg-[#fafafa]">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Size Label (e.g., L, 42, Standard)</label>
-                    <Input {...form.register(`sizes.${sizeIndex}.size_label`)} className="bg-white text-sm h-8" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Price Override (Leave empty to use base price)</label>
-                    <Input type="number" {...form.register(`sizes.${sizeIndex}.price_override`)} className="bg-white text-sm h-8" />
-                  </div>
-                </div>
-                <Button type="button" variant="destructive" size="icon" onClick={() => removeSize(sizeIndex)} disabled={sizeFields.length === 1}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* COLORS ARRAY FOR THIS SIZE */}
-              <ColorsFieldArray control={form.control} sizeIndex={sizeIndex} register={form.register} setValue={form.setValue} watch={form.watch} />
+          <div className="bg-white p-6 rounded-xl border border-[var(--color-border)] shadow-sm space-y-4">
+            <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Pricing</h3>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Base Price</label>
+              <Input type="number" {...form.register("base_price")} />
             </div>
-          ))}
+          </div>
+          <div className="bg-white p-6 rounded-xl border border-[var(--color-border)] shadow-sm space-y-4">
+            <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Photos</h3>
+            <div {...getRootProps()} className="border-2 border-dashed border-[var(--color-border)] rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50">
+              <input {...getInputProps()} />
+              <UploadCloud className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+              <p className="text-xs text-gray-500">Upload photos</p>
+            </div>
+          </div>
         </div>
-
-        <Button 
-          type="button" 
-          variant="outline" 
-          className="w-full border-dashed py-6 hover:bg-[var(--color-surface)]"
-          onClick={() => appendSize({ id: uuidv4(), size_label: "", is_standard: true, price_override: null, colors: [{ id: uuidv4(), color_name: "", color_hex: "#000000" }] })}
-        >
-          <Plus className="h-4 w-4 mr-2" /> Add Another Size Variant
-        </Button>
       </div>
 
-      {/* Submit */}
+      <div className="space-y-6 pt-4 border-t border-[var(--color-border)]">
+        <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Variants (Matrix)</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h4 className="font-semibold text-[var(--color-text)] flex items-center gap-2">
+              <div className="w-1.5 h-6 bg-[var(--color-primary)] rounded-full" /> 1. Sizes
+            </h4>
+            {sizeFields.map((field, index) => (
+              <div key={field.id} className="flex items-start gap-3 p-3 bg-[#fafafa] border border-[var(--color-border)] rounded-lg group">
+                <div className="flex-1 space-y-2">
+                  <Input {...form.register(`matrix_sizes.${index}.size_label`)} placeholder="Size" className="bg-white h-9" />
+                  <Input type="number" {...form.register(`matrix_sizes.${index}.price_override`)} placeholder="Price Override" className="bg-white h-7 text-xs w-32" />
+                </div>
+                <Button type="button" variant="ghost" size="icon" onClick={() => removeSize(index)} disabled={sizeFields.length === 1}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" className="w-full border-dashed" onClick={() => appendSize({ id: uuidv4(), size_label: "", price_override: null })}><Plus className="h-3 w-3 mr-2" /> Add Size</Button>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="font-semibold text-[var(--color-text)] flex items-center gap-2">
+              <div className="w-1.5 h-6 bg-purple-500 rounded-full" /> 2. Colors
+            </h4>
+            <ColorsFieldArray control={form.control} register={form.register} setValue={form.setValue} watch={form.watch} />
+          </div>
+        </div>
+      </div>
+
       <div className="pt-6 flex justify-end gap-3 border-t border-[var(--color-border)]">
         <Button type="button" variant="secondary" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" disabled={isLoading} className="min-w-32">
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-          {isLoading ? 'Saving...' : 'Save Product'}
-        </Button>
+        <Button type="submit" disabled={isLoading} className="min-w-32">{isLoading ? 'Saving...' : 'Save'}</Button>
       </div>
 
+      <ScannerModal isOpen={isScanning} onClose={() => setIsScanning(false)} onScan={(code) => { form.setValue("barcode", code); setIsScanning(false); }} />
     </form>
   )
 }
 
-// Sub-component for managing colors array per size
 const STANDARD_COLORS = [
   { name: "Noir", hex: "#000000" },
   { name: "Blanc", hex: "#ffffff" },
@@ -510,152 +316,40 @@ const STANDARD_COLORS = [
   { name: "Mix...", hex: "#ffffff,#000000" }
 ];
 
-function ColorsFieldArray({ control, sizeIndex, register, setValue, watch }: { control: any, sizeIndex: number, register: any, setValue: any, watch: any }) {
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: `sizes.${sizeIndex}.colors`
-  })
-
+function ColorsFieldArray({ control, register, setValue, watch }: { control: any, register: any, setValue: any, watch: any }) {
+  const { fields, append, remove } = useFieldArray({ control, name: "matrix_colors" })
   return (
     <div className="mt-2 pl-4 border-l-2 border-[var(--color-primary)]/20">
       <div className="flex flex-col gap-2 mb-4">
-        <h4 className="text-sm font-medium">Colors for this size</h4>
         <div className="flex flex-wrap gap-2">
           {STANDARD_COLORS.map(c => (
-            <Button 
-              key={c.name} 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={() => append({ id: uuidv4(), color_name: c.name, color_hex: c.hex })}
-            >
-              <div className="w-3 h-3 rounded-full mr-2 border border-gray-300" style={
-                c.hex.includes(',') || c.hex.includes('/')
-                ? { background: `linear-gradient(135deg, ${(c.hex.split(/\/|,/)[0] || '#ccc').trim()} 50%, ${(c.hex.split(/\/|,/)[1] || '#ccc').trim()} 50%)` }
-                : { backgroundColor: c.hex }
-              }></div>
+            <Button key={c.name} type="button" variant="outline" size="sm" onClick={() => append({ id: uuidv4(), color_name: c.name, color_hex: c.hex })}>
+              <div className="w-3 h-3 rounded-full mr-2 border border-gray-300" style={c.hex.includes(',') ? { background: `linear-gradient(135deg, ${c.hex.split(/[,/]/)[0]} 50%, ${c.hex.split(/[,/]/)[1]} 50%)` } : { backgroundColor: c.hex }}></div>
               {c.name}
             </Button>
           ))}
-          <Button type="button" variant="secondary" size="sm" onClick={() => append({ id: uuidv4(), color_name: "Couleur Spéciale", color_hex: "#eeeeee" })}>
-            <Plus className="h-3 w-3 mr-1" /> Custom Color
-          </Button>
         </div>
       </div>
-      
       <div className="space-y-3">
         {fields.map((colorField, colorIndex) => {
-          const currentColorHex = watch(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`);
-          const currentColorName = watch(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`);
-
+          const currentColorHex = watch(`matrix_colors.${colorIndex}.color_hex`);
+          const hexParts = (currentColorHex || "").split(/[,/]/).map((s: string) => s.trim());
           return (
-            <div key={colorField.id} className="flex flex-wrap items-end gap-3 p-2 bg-white border border-[var(--color-border)] rounded-md shadow-sm relative group">
+            <div key={colorField.id} className="flex items-end gap-3 p-3 bg-white border border-[var(--color-border)] rounded-lg group shadow-sm">
               <div className="flex-1 min-w-[120px]">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[10px] uppercase text-gray-500">Color Name</label>
-                  <div className="flex gap-1">
-                    {STANDARD_COLORS.map(c => (
-                      <button
-                        key={c.name}
-                        type="button"
-                        title={c.name}
-                        className={`w-3.5 h-3.5 rounded-full border border-gray-200 hover:scale-125 transition-transform ${currentColorName === c.name ? 'ring-2 ring-[var(--color-primary)] ring-offset-1' : ''}`}
-                        style={
-                         c.hex.includes(',') || c.hex.includes('/') 
-                           ? { background: `linear-gradient(135deg, ${(c.hex.split(/\/|,/)[0] || '#ccc').trim()} 50%, ${(c.hex.split(/\/|,/)[1] || '#ccc').trim()} 50%)` }
-                           : { backgroundColor: c.hex }
-                        }
-                        onClick={() => {
-                          setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`, c.name);
-                          setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, c.hex);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <Input {...register(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`)} placeholder="e.g. Noir" className="bg-white h-8 text-xs" />
+                <Input {...register(`matrix_colors.${colorIndex}.color_name`)} placeholder="Color Name" className="h-9 text-xs" />
               </div>
-              <div>
-                <label className="block text-[10px] uppercase text-gray-500 mb-1">Hex / Mix</label>
-                <div className="flex items-center border border-[var(--color-border)] h-8 rounded bg-white overflow-hidden min-w-[120px]">
-                  {/* First Color Picker */}
-                  <div className="relative w-8 h-8 flex-shrink-0">
-                    <input 
-                      type="color" 
-                      value={(currentColorHex?.split(/,|\//)[0] || "#000000").trim()}
-                      onChange={(e) => {
-                        const newColor = e.target.value;
-                        const parts = (currentColorHex || "").split(/,|\//);
-                        parts[0] = newColor;
-                        const newVal = parts.join(",");
-                        setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, newVal);
-                      }}
-                      className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer opacity-0 z-10" 
-                    />
-                    <div 
-                      className="w-full h-full border-r border-[var(--color-border)]" 
-                      style={{ backgroundColor: (currentColorHex?.split(/,|\//)[0] || "#000000").trim() }} 
-                    />
-                  </div>
-
-                  {/* Second Color Picker (Optional Mix) */}
-                  {(currentColorHex?.includes(',') || currentColorHex?.includes('/')) && (
-                    <div className="relative w-8 h-8 flex-shrink-0 border-l border-[var(--color-border)]">
-                      <input 
-                        type="color" 
-                        value={(currentColorHex?.split(/,|\//)[1] || "#ffffff").trim()}
-                        onChange={(e) => {
-                          const newColor = e.target.value;
-                          const parts = (currentColorHex || "").split(/,|\//);
-                          if (parts.length < 2) parts.push("#ffffff");
-                          parts[1] = newColor;
-                          const newVal = parts.join(",");
-                          setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, newVal);
-                        }}
-                        className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer opacity-0 z-10" 
-                      />
-                      <div 
-                        className="w-full h-full border-r border-[var(--color-border)]" 
-                        style={{ backgroundColor: (currentColorHex?.split(/,|\//)[1] || "#ffffff").trim() }} 
-                      />
-                    </div>
-                  )}
-
-                  <Input 
-                    value={currentColorHex}
-                    onChange={(e) => setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, e.target.value)}
-                    placeholder="#000000"
-                    className="border-0 h-full text-[10px] px-2 w-full focus-visible:ring-0 min-w-[80px]" 
-                  />
-                  
-                  {/* Toggle Mix Mode Button */}
-                  <button
-                    type="button"
-                    title="Add/Remove Mix Color"
-                    onClick={() => {
-                      const parts = (currentColorHex || "").split(/,|\//);
-                      if (parts.length > 1) {
-                        setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, parts[0]);
-                      } else {
-                        setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, `${parts[0]},#ffffff`);
-                        if (!currentColorName || currentColorName === "Default") {
-                           setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`, "Mix");
-                        }
-                      }
-                    }}
-                    className={`h-full px-2 border-l border-[var(--color-border)] hover:bg-gray-50 flex items-center justify-center transition-colors ${currentColorHex?.includes(',') ? 'text-[var(--color-primary)] bg-blue-50' : 'text-gray-400'}`}
-                  >
-                    <Plus className={`h-3 w-3 ${currentColorHex?.includes(',') ? 'rotate-45' : ''} transition-transform`} />
-                  </button>
-                </div>
+              <div className="flex items-center border border-[var(--color-border)] h-9 rounded bg-white overflow-hidden px-2">
+                <input type="color" value={hexParts[0] || "#000000"} onChange={(e) => { const parts = [...hexParts]; parts[0] = e.target.value; setValue(`matrix_colors.${colorIndex}.color_hex`, parts.join(",")); }} className="w-6 h-6 p-0 border-0 cursor-pointer" />
+                <Input value={currentColorHex} onChange={(e) => setValue(`matrix_colors.${colorIndex}.color_hex`, e.target.value)} className="border-0 h-full text-[10px] w-20 px-1 focus-visible:ring-0" />
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => { const parts = [...hexParts]; if (parts.length > 1) setValue(`matrix_colors.${colorIndex}.color_hex`, parts[0]); else setValue(`matrix_colors.${colorIndex}.color_hex`, `${parts[0]},#ffffff`); }}><Plus className="h-3 w-3" /></Button>
               </div>
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50 mb-px" onClick={() => remove(colorIndex)} disabled={fields.length === 1}>
-                <X className="h-4 w-4" />
-              </Button>
+              <Button type="button" variant="ghost" size="icon" onClick={() => remove(colorIndex)} disabled={fields.length === 1}><X className="h-4 w-4" /></Button>
             </div>
           );
         })}
       </div>
+      <Button type="button" variant="outline" size="sm" className="w-full border-dashed mt-4" onClick={() => append({ id: uuidv4(), color_name: "", color_hex: "#000000" })}><Plus className="h-3 w-3 mr-2" /> Add Color</Button>
     </div>
   )
 }
