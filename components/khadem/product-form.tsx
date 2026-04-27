@@ -449,9 +449,6 @@ export function ProductForm({ categories, models, initialData }: { categories: C
       <div className="space-y-4 pt-4 border-t border-[var(--color-border)]">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold font-display text-[var(--color-text)]">Variants (Sizes & Colors)</h3>
-          <Button type="button" variant="outline" onClick={() => appendSize({ id: uuidv4(), size_label: "", is_standard: true, price_override: null, colors: [{ id: uuidv4(), color_name: "", color_hex: "#000000" }] })}>
-            <Plus className="h-4 w-4 mr-2" /> Add Size
-          </Button>
         </div>
 
         <div className="space-y-6">
@@ -474,10 +471,19 @@ export function ProductForm({ categories, models, initialData }: { categories: C
               </div>
 
               {/* COLORS ARRAY FOR THIS SIZE */}
-              <ColorsFieldArray control={form.control} sizeIndex={sizeIndex} register={form.register} />
+              <ColorsFieldArray control={form.control} sizeIndex={sizeIndex} register={form.register} setValue={form.setValue} watch={form.watch} />
             </div>
           ))}
         </div>
+
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="w-full border-dashed py-6 hover:bg-[var(--color-surface)]"
+          onClick={() => appendSize({ id: uuidv4(), size_label: "", is_standard: true, price_override: null, colors: [{ id: uuidv4(), color_name: "", color_hex: "#000000" }] })}
+        >
+          <Plus className="h-4 w-4 mr-2" /> Add Another Size Variant
+        </Button>
       </div>
 
       {/* Submit */}
@@ -502,7 +508,7 @@ const STANDARD_COLORS = [
   { name: "Gris", hex: "#808080" }
 ];
 
-function ColorsFieldArray({ control, sizeIndex, register }: { control: any, sizeIndex: number, register: any }) {
+function ColorsFieldArray({ control, sizeIndex, register, setValue, watch }: { control: any, sizeIndex: number, register: any, setValue: any, watch: any }) {
   const { fields, append, remove } = useFieldArray({
     control,
     name: `sizes.${sizeIndex}.colors`
@@ -532,24 +538,67 @@ function ColorsFieldArray({ control, sizeIndex, register }: { control: any, size
       </div>
       
       <div className="space-y-3">
-        {fields.map((colorField, colorIndex) => (
-          <div key={colorField.id} className="flex flex-wrap items-end gap-3 p-2 bg-white border border-[var(--color-border)] rounded-md shadow-sm">
-            <div className="flex-1 min-w-[120px]">
-              <label className="block text-[10px] uppercase text-gray-500 mb-1">Color Name</label>
-              <Input {...register(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`)} placeholder="e.g. Noir" className="bg-white h-8 text-xs" />
-            </div>
-            <div>
-              <label className="block text-[10px] uppercase text-gray-500 mb-1">Hex</label>
-              <div className="flex items-center border border-[var(--color-border)] h-8 rounded bg-white overflow-hidden w-24">
-                <input type="color" {...register(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`)} className="w-8 h-8 p-0 border-0 cursor-pointer bg-transparent" />
-                <Input {...register(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`)} className="border-0 h-full text-xs px-2 w-full focus-visible:ring-0" />
+        {fields.map((colorField, colorIndex) => {
+          const currentColorHex = watch(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`);
+          const currentColorName = watch(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`);
+
+          return (
+            <div key={colorField.id} className="flex flex-wrap items-end gap-3 p-2 bg-white border border-[var(--color-border)] rounded-md shadow-sm relative group">
+              <div className="flex-1 min-w-[120px]">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] uppercase text-gray-500">Color Name</label>
+                  <div className="flex gap-1">
+                    {STANDARD_COLORS.map(c => (
+                      <button
+                        key={c.name}
+                        type="button"
+                        title={c.name}
+                        className={`w-3.5 h-3.5 rounded-full border border-gray-200 hover:scale-125 transition-transform ${currentColorName === c.name ? 'ring-2 ring-[var(--color-primary)] ring-offset-1' : ''}`}
+                        style={{ backgroundColor: c.hex }}
+                        onClick={() => {
+                          setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`, c.name);
+                          setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, c.hex);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <Input {...register(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`)} placeholder="e.g. Noir" className="bg-white h-8 text-xs" />
               </div>
+              <div>
+                <label className="block text-[10px] uppercase text-gray-500 mb-1">Hex</label>
+                <div className="flex items-center border border-[var(--color-border)] h-8 rounded bg-white overflow-hidden w-28">
+                  <div className="relative w-8 h-8 flex-shrink-0">
+                    <input 
+                      type="color" 
+                      value={currentColorHex || "#000000"}
+                      onChange={(e) => {
+                        const newHex = e.target.value;
+                        setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, newHex);
+                        // If it matches a standard color exactly, update the name too
+                        const match = STANDARD_COLORS.find(c => c.hex.toLowerCase() === newHex.toLowerCase());
+                        if (match && (!currentColorName || currentColorName === "Default" || currentColorName === "Couleur Spéciale")) {
+                          setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_name`, match.name);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer opacity-0" 
+                    />
+                    <div className="w-full h-full border-r border-[var(--color-border)]" style={{ backgroundColor: currentColorHex }} />
+                  </div>
+                  <Input 
+                    value={currentColorHex}
+                    onChange={(e) => setValue(`sizes.${sizeIndex}.colors.${colorIndex}.color_hex`, e.target.value)}
+                    placeholder="#000000"
+                    className="border-0 h-full text-xs px-2 w-full focus-visible:ring-0" 
+                  />
+                </div>
+              </div>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50 mb-px" onClick={() => remove(colorIndex)} disabled={fields.length === 1}>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50 mb-px" onClick={() => remove(colorIndex)} disabled={fields.length === 1}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   )
