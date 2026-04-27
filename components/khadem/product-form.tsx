@@ -91,8 +91,7 @@ export function ProductForm({ categories, models, initialData }: { categories: C
   };
 
   const form = useForm<ProductFormValues>({
-    // @ts-ignore
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: getInitialValues() as unknown as ProductFormValues
   })
 
@@ -154,10 +153,11 @@ export function ProductForm({ categories, models, initialData }: { categories: C
       const articleId = product.id
 
       for (const file of photos) {
-        const uploadUrl = await getUploadUrl(file.name, file.type)
-        await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } })
-        const photoUrl = uploadUrl.split("?")[0]
-        await supabase.from("article_photos").insert({ article_id: articleId, photo_url: photoUrl, position: 0 })
+        const res = await getUploadUrl(file.name, file.type)
+        if (!res.success || !res.uploadUrl || !res.publicUrl) throw new Error("Failed to get upload URL")
+        
+        await fetch(res.uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } })
+        await supabase.from("article_photos").insert({ article_id: articleId, photo_url: res.publicUrl, position: 0 })
       }
 
       const currentSizeIds: string[] = []

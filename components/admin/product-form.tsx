@@ -103,8 +103,7 @@ export function ProductForm({ categories, models, initialData }: { categories: C
   };
 
   const form = useForm<ProductFormValues>({
-    // @ts-ignore
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: getInitialValues() as unknown as ProductFormValues
   })
 
@@ -180,9 +179,10 @@ export function ProductForm({ categories, models, initialData }: { categories: C
       // 2. Handle Photos
       for (let i = 0; i < photos.length; i++) {
         const file = photos[i]
-        const uploadUrl = await getUploadUrl(file.name, file.type)
+        const res = await getUploadUrl(file.name, file.type)
+        if (!res.success || !res.uploadUrl || !res.publicUrl) throw new Error("Failed to get upload URL")
         
-        const uploadRes = await fetch(uploadUrl, {
+        const uploadRes = await fetch(res.uploadUrl, {
           method: "PUT",
           body: file,
           headers: { "Content-Type": file.type }
@@ -190,10 +190,9 @@ export function ProductForm({ categories, models, initialData }: { categories: C
 
         if (!uploadRes.ok) throw new Error("Failed to upload photo")
         
-        const photoUrl = uploadUrl.split("?")[0]
         const { error: photoErr } = await supabase.from("article_photos").insert({
           article_id: articleId,
-          photo_url: photoUrl,
+          photo_url: res.publicUrl,
           position: existingPhotos.length + i
         })
         if (photoErr) throw photoErr
