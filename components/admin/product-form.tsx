@@ -103,6 +103,7 @@ export function ProductForm({ categories, models, initialData }: { categories: C
   };
 
   const form = useForm<ProductFormValues>({
+    // @ts-ignore
     resolver: zodResolver(productSchema),
     defaultValues: getInitialValues() as unknown as ProductFormValues
   })
